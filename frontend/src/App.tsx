@@ -13,6 +13,7 @@ import { MainProcessLogger } from './components/MainProcessLogger';
 import { ErrorDialog } from './components/ErrorDialog';
 import { PermissionDialog } from './components/PermissionDialog';
 import { DiscordPopup } from './components/DiscordPopup';
+import { KanbanBoard } from './components/KanbanBoard';
 import { useErrorStore } from './stores/errorStore';
 import { useSessionStore } from './stores/sessionStore';
 import { API } from './utils/api';
@@ -35,6 +36,7 @@ function App() {
   const [isDiscordOpen, setIsDiscordOpen] = useState(false);
   const [hasCheckedWelcome, setHasCheckedWelcome] = useState(false);
   const [isPromptHistoryOpen, setIsPromptHistoryOpen] = useState(false);
+  const [isKanbanOpen, setIsKanbanOpen] = useState(false);
   const { currentError, clearError } = useErrorStore();
   const { sessions, isLoaded } = useSessionStore();
   
@@ -48,13 +50,18 @@ function App() {
   useIPCEvents();
   const { showNotification } = useNotifications();
 
-  // Add keyboard shortcut for prompt history
+  // Add keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Cmd/Ctrl + P to open prompt history
       if ((e.metaKey || e.ctrlKey) && e.key === 'p') {
         e.preventDefault();
         setIsPromptHistoryOpen(true);
+      }
+      // Cmd/Ctrl + K to toggle Kanban board
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsKanbanOpen(prev => !prev);
       }
     };
 
@@ -256,7 +263,7 @@ function App() {
         width={sidebarWidth}
         onResize={startResize}
       />
-      <SessionView />
+      {isKanbanOpen ? <KanbanBoard /> : <SessionView />}
       <Help isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
       <Welcome isOpen={isWelcomeOpen} onClose={() => setIsWelcomeOpen(false)} />
       <AboutDialog isOpen={isAboutOpen} onClose={() => setIsAboutOpen(false)} />
