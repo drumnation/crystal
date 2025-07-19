@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Kanban UI Test - Intentionally Broken Board</title>
+    <script src="https://unpkg.com/react@19/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@19/umd/react-dom.development.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .test-container { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .test-result { padding: 12px; margin: 8px 0; border-radius: 6px; font-weight: bold; }
+        .test-pass { background: #d1fae5; color: #065f46; }
+        .test-fail { background: #fee2e2; color: #991b1b; }
+        .error-display { background: #fef2f2; border: 2px solid #fecaca; padding: 16px; border-radius: 8px; color: #dc2626; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script>
+        // Intentionally broken PlanningView component
+        function BrokenPlanningView({ tasks = [] }) {
+            // This will cause errors:
+            
+            // 1. Try to access properties of null/undefined
+            const brokenTaskCount = tasks.invalidProperty.length; // Will throw error
+            
+            // 2. Don't handle empty arrays
+            if (tasks.length === 0) {
+                return null; // Don't show anything for empty state
+            }
+            
+            // 3. Assume all tasks have required properties
+            return React.createElement('div', {
+                'data-testid': 'broken-planning-view'
+            }, [
+                React.createElement('h2', { key: 'title' }, 'Broken Kanban Board'),
+                React.createElement('p', { key: 'count' }, 'Task count: ' + brokenTaskCount),
+                // 4. Don't properly handle task rendering
+                tasks.map(task => 
+                    React.createElement('div', {
+                        key: task.id, // Will break if task.id is undefined
+                        'data-testid': 'task-' + task.id
+                    }, task.title.toUpperCase()) // Will break if task.title is undefined
+                )
+            ]);
+        }
+
+        // Test runner that demonstrates failures
+        function BrokenBoardTestRunner() {
+            const [testResults, setTestResults] = React.useState([]);
+            const [currentBoard, setCurrentBoard] = React.useState('working');
+            
+            const testData = {
+                working: [
+                    { id: 'task-1', title: 'Working Task', status: 'planned' }
+                ],
+                broken: null, // This will cause errors
+                empty: []
+            };
+
+            const runTest = (testName, testFn) => {
+                try {
+                    const result = testFn();
+                    setTestResults(prev => [...prev, {
+                        name: testName,
+                        passed: result.passed,
+                        message: result.message,
+                        timestamp: new Date().toLocaleTimeString()
+                    }]);
+                } catch (error) {
+                    setTestResults(prev => [...prev, {
+                        name: testName,
+                        passed: false,
+                        message: 'Test failed with error: ' + error.message,
+                        timestamp: new Date().toLocaleTimeString()
+                    }]);
+                }
+            };
+
+            const runAllTests = () => {
+                setTestResults([]);
+                
+                // Test 1: Board renders
+                runTest('Board renders', () => {
+                    const boardElement = document.querySelector('[data-testid*="planning-view"]');
+                    return {
+                        passed: boardElement !== null,
+                        message: boardElement ? 'Board found' : 'Board not found'
+                    };
+                });
+
+                // Test 2: Tasks are displayed
+                runTest('Tasks display correctly', () => {
+                    const taskElements = document.querySelectorAll('[data-testid^="task-"]');
+                    return {
+                        passed: taskElements.length > 0,
+                        message: `Found ${taskElements.length} tasks`
+                    };
+                });
+
+                // Test 3: Empty state handling
+                runTest('Empty state handling', () => {
+                    // This should fail for broken board because it returns null for empty arrays
+                    const emptyStateShown = currentBoard === 'empty' && 
+                                          document.querySelector('[data-testid*="planning-view"]') !== null;
+                    return {
+                        passed: emptyStateShown,
+                        message: emptyStateShown ? 'Empty state handled' : 'Empty state not handled'
+                    };
+                });
+
+                // Test 4: Error handling
+                runTest('Error boundary catches crashes', () => {
+                    // Check if error boundary caught the error
+                    const errorBoundary = document.querySelector('[data-testid="error-boundary"]');
+                    const hasCrashed = currentBoard === 'broken' && errorBoundary !== null;
+                    return {
+                        passed: hasCrashed,
+                        message: hasCrashed ? 'Error caught by boundary' : 'No error boundary or crash'
+                    };
+                });
+            };
+
+            React.useEffect(() => {
+                setTimeout(runAllTests, 500);
+            }, [currentBoard]);
+
+            let boardComponent;
+            try {
+                if (currentBoard === 'broken') {
+                    boardComponent = React.createElement(BrokenPlanningView, { 
+                        tasks: testData.broken 
+                    });
+                } else {
+                    boardComponent = React.createElement(BrokenPlanningView, { 
+                        tasks: testData[currentBoard] 
+                    });
+                }
+            } catch (error) {
+                boardComponent = React.createElement('div', {
+                    className: 'error-display',
+                    'data-testid': 'error-boundary'
+                }, [
+                    React.createElement('h3', { key: 'title' }, 'Component Crashed!'),
+                    React.createElement('p', { key: 'message' }, 'Error: ' + error.message),
+                    React.createElement('p', { key: 'note' }, 'This demonstrates that tests can detect when the board is broken.')
+                ]);
+            }
+
+            return React.createElement('div', {}, [
+                React.createElement('div', { key: 'header', className: 'test-container' }, [
+                    React.createElement('h1', { key: 'title' }, 'Kanban UI - Broken Board Test'),
+                    React.createElement('p', { key: 'desc' }, 
+                        'This demonstrates that our tests will fail when the board is broken.'
+                    ),
+                    React.createElement('div', { key: 'controls', style: { margin: '16px 0' } }, [
+                        React.createElement('button', {
+                            key: 'working',
+                            onClick: () => setCurrentBoard('working'),
+                            style: { 
+                                padding: '8px 16px', 
+                                margin: '4px', 
+                                backgroundColor: currentBoard === 'working' ? '#3b82f6' : '#6b7280',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px'
+                            }
+                        }, 'Working Board'),
+                        React.createElement('button', {
+                            key: 'empty',
+                            onClick: () => setCurrentBoard('empty'),
+                            style: { 
+                                padding: '8px 16px', 
+                                margin: '4px', 
+                                backgroundColor: currentBoard === 'empty' ? '#3b82f6' : '#6b7280',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px'
+                            }
+                        }, 'Empty Board'),
+                        React.createElement('button', {
+                            key: 'broken',
+                            onClick: () => setCurrentBoard('broken'),
+                            style: { 
+                                padding: '8px 16px', 
+                                margin: '4px', 
+                                backgroundColor: currentBoard === 'broken' ? '#ef4444' : '#6b7280',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px'
+                            }
+                        }, 'Broken Board (Will Fail Tests)')
+                    ])
+                ]),
+
+                React.createElement('div', { key: 'board', className: 'test-container' }, [
+                    React.createElement('h2', { key: 'title' }, 'Board: ' + currentBoard),
+                    boardComponent
+                ]),
+
+                React.createElement('div', { key: 'results', className: 'test-container' }, [
+                    React.createElement('h2', { key: 'title' }, 'Test Results'),
+                    testResults.length === 0 ? 
+                        React.createElement('p', { key: 'empty' }, 'Running tests...') :
+                        React.createElement('div', { key: 'list' }, [
+                            ...testResults.map((result, index) =>
+                                React.createElement('div', {
+                                    key: index,
+                                    className: 'test-result ' + (result.passed ? 'test-pass' : 'test-fail')
+                                }, [
+                                    React.createElement('strong', { key: 'name' }, result.name + ': '),
+                                    React.createElement('span', { key: 'status' }, result.passed ? '✅ PASS' : '❌ FAIL'),
+                                    React.createElement('span', { key: 'message' }, ' - ' + result.message)
+                                ])
+                            ),
+                            React.createElement('div', { key: 'summary', style: { marginTop: '16px', padding: '12px', backgroundColor: '#f3f4f6', borderRadius: '6px' } }, [
+                                React.createElement('strong', { key: 'title' }, 'Summary: '),
+                                React.createElement('span', { key: 'stats' }, 
+                                    `${testResults.filter(r => r.passed).length}/${testResults.length} tests passed`
+                                ),
+                                testResults.some(r => !r.passed) && 
+                                React.createElement('p', { key: 'fail-note', style: { margin: '8px 0 0 0', fontStyle: 'italic' } }, 
+                                    '🔍 Failed tests demonstrate that our test suite can detect broken boards!')
+                            ])
+                        ])
+                ])
+            ]);
+        }
+
+        // Render with error boundary
+        class ErrorBoundary extends React.Component {
+            constructor(props) {
+                super(props);
+                this.state = { hasError: false, error: null };
+            }
+
+            static getDerivedStateFromError(error) {
+                return { hasError: true, error: error.message };
+            }
+
+            render() {
+                if (this.state.hasError) {
+                    return React.createElement('div', {
+                        className: 'error-display',
+                        'data-testid': 'error-boundary'
+                    }, [
+                        React.createElement('h3', { key: 'title' }, 'Error Boundary Caught Crash!'),
+                        React.createElement('p', { key: 'message' }, 'Error: ' + this.state.error),
+                        React.createElement('p', { key: 'success' }, '✅ This proves our tests can detect broken boards!'),
+                        React.createElement('button', {
+                            key: 'retry',
+                            onClick: () => this.setState({ hasError: false, error: null }),
+                            style: { 
+                                padding: '8px 16px', 
+                                backgroundColor: '#10b981', 
+                                color: 'white', 
+                                border: 'none', 
+                                borderRadius: '4px' 
+                            }
+                        }, 'Reset')
+                    ]);
+                }
+
+                return this.props.children;
+            }
+        }
+
+        ReactDOM.render(
+            React.createElement(ErrorBoundary, {},
+                React.createElement(BrokenBoardTestRunner)
+            ),
+            document.getElementById('root')
+        );
+    </script>
+</body>
+</html>
