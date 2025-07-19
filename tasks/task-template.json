@@ -1,0 +1,29 @@
+{
+  "id": "task-id-kebab-case",
+  "title": "Brief descriptive title for the task",
+  "description": "Detailed description of what this task accomplishes and why it's needed.",
+  "branch": "feature/branch-name-matching-task",
+  "status": "planned",
+  "userStories": [
+    "As a [role], I want [goal] so that [benefit].",
+    "As a [role], I need [capability] to [achieve outcome]."
+  ],
+  "successCriteria": [
+    "Specific measurable outcome that proves task completion",
+    "Another concrete verification point",
+    "Final acceptance criteria"
+  ],
+  "env": {
+    "ENABLE_KANBAN": "true",
+    "VITE_FEATURE_NAME": "task-name-for-ui-injection"
+  },
+  "dependencies": [
+    "task-id-that-must-complete-first"
+  ],
+  "estimatedHours": 4,
+  "priority": "medium",
+  "tags": ["ui", "backend", "integration", "testing"],
+  "assignee": "claude-agent",
+  "createdAt": "2024-07-19T00:00:00Z",
+  "updatedAt": "2024-07-19T00:00:00Z"
+}

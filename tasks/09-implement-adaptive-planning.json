@@ -1,0 +1,38 @@
+{
+  "id": "task-adaptive-planning-system",
+  "title": "Implement adaptive planning with lazy instruction evaluation",
+  "description": "Builds a dynamic instruction generation system that resolves task details just-in-time from the master plan, preventing stale instructions while maintaining centralized planning.",
+  "branch": "feature/adaptive-planning-core",
+  "status": "planned",
+  "masterPlanRef": "Phase 3: Adaptive Planning",
+  "instruction": null,
+  "userStories": [
+    "As a planning system, I want to generate task instructions dynamically so that they never become stale.",
+    "As an agent, I want current repo state and master plan context injected when I start a session.",
+    "As a maintainer, I want to update the master plan without rewriting existing task files."
+  ],
+  "successCriteria": [
+    "generateInstructionFromMasterPlan(taskId) function exists and works",
+    "Task shells can reference master plan sections without detailed instructions",
+    "Claude sessions receive: master plan + repo state + task metadata on launch",
+    "Master plan updates automatically reflect in new sessions",
+    "Old task files remain valid without manual updates"
+  ],
+  "implementation": {
+    "components": [
+      "kanban/logic/masterPlanResolver.ts",
+      "kanban/logic/contextInjector.ts", 
+      "frontend/src/components/kanban/TaskShell.tsx"
+    ],
+    "features": [
+      "Lazy instruction evaluation",
+      "Real-time context injection",
+      "Master plan parsing and mapping",
+      "Session context generation"
+    ]
+  },
+  "env": {
+    "ENABLE_KANBAN": "true",
+    "VITE_FEATURE_NAME": "adaptive-planning"
+  }
+}

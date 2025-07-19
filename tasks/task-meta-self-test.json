@@ -1,0 +1,14 @@
+{
+  "id": "kanban-meta-self-validation",
+  "title": "Test that the Kanban system can manage its own testing",
+  "branch": "feature/validate-kanban-system",
+  "status": "planned",
+  "userStories": [
+    "As a user, I want to use the Kanban UI to test all the features used to build it."
+  ],
+  "successCriteria": [
+    "All follow-up tasks appear in the board",
+    "Each task links to the correct worktree",
+    "Each task passes visual or console-based checks"
+  ]
+}

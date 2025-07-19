@@ -1,0 +1,26 @@
+{
+  "id": "bootstrap-merge-validation",
+  "title": "Merge validated branches and confirm Kanban UI is operational",
+  "description": "This task unifies the disconnected worktrees by merging the 5 feature branches validated via the meta-agent. It confirms that the Planning tab renders, loads tasks, and can launch Claude sessions. It marks the completion of the bootstrap paradox and initiates recursive planning.",
+  "branch": "main",
+  "status": "in-progress",
+  "userStories": [
+    "As a developer, I want to see all my planning tasks in one place so I can visually track progress.",
+    "As an agent, I need the Planning tab and task loader to be functional before I can begin recursive orchestration."
+  ],
+  "successCriteria": [
+    "All 5 feature branches are merged into main",
+    "The Planning tab appears when ENABLE_KANBAN=true",
+    "All 15 task cards render correctly",
+    "Launching Claude from a task card starts a session",
+    "Recursive planning becomes possible"
+  ],
+  "env": {
+    "ENABLE_KANBAN": "true",
+    "NODE_OPTIONS": "--max-old-space-size=8192"
+  },
+  "postMergeCommands": [
+    "pnpm install",
+    "pnpm electron-dev"
+  ]
+}

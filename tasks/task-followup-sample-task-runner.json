@@ -1,0 +1,14 @@
+{
+  "id": "followup-launch-task",
+  "title": "Launch Claude button sends correct data",
+  "branch": "feature/sample-task-runner",
+  "status": "planned",
+  "userStories": [
+    "As an agent, I want access to task metadata when launching sessions."
+  ],
+  "successCriteria": [
+    "Clicking the Launch button logs the expected task title",
+    "No crash occurs",
+    "Task data is passed to the stub function"
+  ]
+}

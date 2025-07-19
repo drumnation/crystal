@@ -1,0 +1,16 @@
+{
+  "id": "kanban-bootstrap-pain",
+  "title": "Capture confusion during toolless Kanban planning",
+  "description": "Reflects the frustration and confusion caused by building the Kanban system without having the Kanban UI operational yet.",
+  "branch": "feature/document-bootstrap-paradox",
+  "status": "complete",
+  "userStories": [
+    "As a developer, I want to remember how difficult it was to coordinate planning tasks before the Kanban UI existed.",
+    "As a designer, I want the tool to support early-stage visibility even before code is fully integrated."
+  ],
+  "successCriteria": [
+    "This task is used to document the bootstrap paradox",
+    "Its description is read by future contributors to understand this constraint",
+    "We eventually add visibility tools for multi-worktree integration status"
+  ]
+}

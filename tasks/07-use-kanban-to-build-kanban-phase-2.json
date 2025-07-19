@@ -1,0 +1,16 @@
+{
+  "id": "kanban-meta-phase2",
+  "title": "Use Kanban to coordinate Phase 2 development",
+  "description": "Drive all Phase 2 features through Kanban task management and self-assignment.",
+  "branch": "feature/kanban-builds-itself-phase2",
+  "status": "planned",
+  "userStories": [
+    "As a builder, I want to fully coordinate Phase 2 using the tool we just built.",
+    "As a system, I want to demonstrate recursive orchestration capacity."
+  ],
+  "successCriteria": [
+    "All Phase 2 tasks exist as cards",
+    "Each card is assigned to a branch",
+    "Each card's status reflects actual system progress"
+  ]
+}

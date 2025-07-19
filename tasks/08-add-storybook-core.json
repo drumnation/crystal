@@ -1,0 +1,19 @@
+{
+  "id": "kanban-add-storybook",
+  "title": "Add isolated Storybook to validate component behavior recursively",
+  "description": "Sets up Storybook in a separate folder outside the main app, enabling agents to test UI components with isolated scenarios and Playwright validation.",
+  "branch": "feature/add-storybook-core",
+  "status": "planned",
+  "userStories": [
+    "As a developer, I want a modular Storybook instance to test UI components before wiring them into the app.",
+    "As an agent, I want to test the behavior of individual components like TaskCard using Playwright, without requiring the full app to be running.",
+    "As a maintainer, I want Storybook to live in its own directory with its own package.json to avoid dependency bloat."
+  ],
+  "successCriteria": [
+    "A `.storybook/` folder exists with Vite + React config",
+    "`/kanban-storybook/` holds all stories and has its own `package.json`",
+    "`pnpm storybook:start` boots the Storybook UI without error",
+    "`pnpm test:storybook` runs a sample Playwright test against a story",
+    "The main app remains untouched by Storybook dependencies"
+  ]
+}

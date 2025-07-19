@@ -1,0 +1,15 @@
+{
+  "id": "kanban-prompt-launch",
+  "title": "Launch Claude session with injected task context",
+  "description": "Enable Claude to receive structured task.json data: user stories, success criteria, prompt strategy.",
+  "branch": "feature/claude-prompt-strategy",
+  "status": "planned",
+  "userStories": [
+    "As a user, I want Claude to start with full context for each feature.",
+    "As an agent, I want to generate tests and code based on task metadata."
+  ],
+  "successCriteria": [
+    "Launch Claude injects structured task.json into the Claude prompt",
+    "Agent sees user stories and scaffold before generating code"
+  ]
+}

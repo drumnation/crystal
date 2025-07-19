@@ -1,0 +1,15 @@
+{
+  "id": "inject-feature-id",
+  "title": "Show current task/worktree name in app UI",
+  "description": "Inject the feature/task name into the app layout for visual debugging.",
+  "branch": "feature/ui-inject-worktree-name",
+  "status": "planned",
+  "userStories": [
+    "As a developer, I want to visually confirm which feature branch I'm running.",
+    "As a tester, I want to know which worktree I'm debugging without checking Git."
+  ],
+  "successCriteria": [
+    "Header of app UI shows worktree or feature name from .env",
+    "Value is injected from VITE_FEATURE_NAME"
+  ]
+}

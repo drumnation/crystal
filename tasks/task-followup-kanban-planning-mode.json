@@ -1,0 +1,15 @@
+{
+  "id": "followup-kanban-ui",
+  "title": "Confirm Planning UI is working",
+  "branch": "feature/kanban-planning-mode",
+  "status": "planned",
+  "userStories": [
+    "As a user, I want to see my tasks organized in columns.",
+    "As a user, I can move tasks between columns without crashing."
+  ],
+  "successCriteria": [
+    "Planning tab is visible when ENABLE_KANBAN is true",
+    "Three task columns render",
+    "Drag-and-drop moves tasks between columns"
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "id": "final-post-merge-validation",
+  "title": "Final Post-Merge Sanity Check",
+  "description": "Validates that all worktrees have been properly merged into main and the unified Kanban system is fully operational with all recursive features working.",
+  "branch": "main",
+  "status": "planned",
+  "userStories": [
+    "As a developer, I want to confirm all feature branches are unified in main.",
+    "As a user, I want to verify the Planning tab loads all task cards correctly.",
+    "As an agent, I want to test that Claude sessions launch successfully from task cards."
+  ],
+  "successCriteria": [
+    "All 5 feature branches are merged into main",
+    "All worktrees are removed/archived", 
+    "App builds successfully with pnpm build",
+    "ENABLE_KANBAN=true pnpm dev shows Planning tab",
+    "All 17+ task cards are visible in Planning tab",
+    "Launch Claude button opens sessions successfully",
+    "End-to-end tests pass with pnpm test:e2e",
+    "Adaptive planning task shells resolve properly"
+  ],
+  "validationSteps": [
+    "Run merge commands from MERGE_COMMANDS.md",
+    "Delete/archive old worktrees with git worktree remove",
+    "Rebuild with NODE_OPTIONS='--max-old-space-size=8192' pnpm build",
+    "Launch with ENABLE_KANBAN=true pnpm dev",
+    "Navigate to Planning tab and verify all tasks load",
+    "Test Claude session launch from a task card",
+    "Run pnpm test:e2e to validate system integrity",
+    "Verify tasks/ folder contains 17+ files"
+  ],
+  "env": {
+    "ENABLE_KANBAN": "true",
+    "NODE_OPTIONS": "--max-old-space-size=8192"
+  },
+  "labels": ["validation", "post-merge", "system-integrity"]
+}

@@ -1,0 +1,14 @@
+{
+  "id": "followup-session-bridge",
+  "title": "Stub session integration works",
+  "branch": "feature/session-bridge",
+  "status": "planned",
+  "userStories": [
+    "As a developer, I want placeholder session data to be safely stubbed.",
+    "As a user, I want Launch Claude buttons to log task info for now."
+  ],
+  "successCriteria": [
+    "No unimplemented function errors",
+    "Button triggers correct stub log"
+  ]
+}

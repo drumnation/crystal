@@ -1,0 +1,16 @@
+{
+  "id": "kanban-test-integration",
+  "title": "Link test status to task cards in Kanban",
+  "description": "Tasks should show % of tests passing, to reflect readiness for merge.",
+  "branch": "feature/kanban-test-status",
+  "status": "planned",
+  "userStories": [
+    "As a developer, I want to know if a task is done based on tests.",
+    "As an agent, I want to prioritize fixing tasks with red tests."
+  ],
+  "successCriteria": [
+    "Each task card shows a pass/fail indicator",
+    "Clicking shows which tests failed",
+    "Tasks with 100% pass are eligible for merge"
+  ]
+}

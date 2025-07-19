@@ -1,0 +1,15 @@
+{
+  "id": "followup-task-loader",
+  "title": "Confirm TaskLoader loads JSON correctly",
+  "branch": "feature/task-loader",
+  "status": "planned",
+  "userStories": [
+    "As a user, I want tasks to be read from the /tasks folder.",
+    "As a developer, I want invalid files to be skipped without crashing the app."
+  ],
+  "successCriteria": [
+    "Console shows loaded tasks",
+    "Malformed JSON does not crash the board",
+    "Task cards appear in the UI"
+  ]
+}

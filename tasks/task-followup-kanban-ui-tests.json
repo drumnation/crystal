@@ -1,0 +1,14 @@
+{
+  "id": "followup-kanban-tests",
+  "title": "Kanban UI tests run and pass",
+  "branch": "test/kanban-ui-tests",
+  "status": "planned",
+  "userStories": [
+    "As a developer, I want to validate the board with Playwright or Vitest."
+  ],
+  "successCriteria": [
+    "Tests confirm columns render",
+    "Tests fail if board is broken",
+    "At least one drag-and-drop test passes"
+  ]
+}

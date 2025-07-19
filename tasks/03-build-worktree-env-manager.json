@@ -1,0 +1,16 @@
+{
+  "id": "kanban-env-manager",
+  "title": "Create WorktreeEnvManager to handle .env and ports",
+  "description": "Adds a system to generate unique .env files and start local servers for each worktree.",
+  "branch": "feature/env-orchestration",
+  "status": "planned",
+  "userStories": [
+    "As an agent, I need a predictable env to test against.",
+    "As a developer, I want to avoid port collisions when launching test servers."
+  ],
+  "successCriteria": [
+    "Each worktree receives a dynamically generated .env file",
+    "Used ports are tracked and incremented",
+    "Server autostarts and browser opens"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "id": "kanban-merge-branches",
+  "title": "Merge all validated feature branches",
+  "description": "Now that all branches have passed validation, safely merge them into main.",
+  "branch": "feature/merge-kanban-core",
+  "status": "planned",
+  "userStories": [
+    "As a developer, I want the validated Kanban modules to be unified into main.",
+    "As a system, I want my full stack accessible for recursive execution."
+  ],
+  "successCriteria": [
+    "All 5 feature branches are rebased and merged cleanly into main",
+    "main builds and launches with Kanban fully integrated",
+    "No regressions introduced"
+  ]
+}
