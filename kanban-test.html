@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanban Component Test</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f9fafb;
+        }
+        .container {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .kanban-test {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .columns {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .column {
+            flex: 1;
+            background: #f3f4f6;
+            border-radius: 8px;
+            padding: 16px;
+            border: 2px dashed #d1d5db;
+        }
+        .column.planned {
+            background: #eff6ff;
+            border-color: #bfdbfe;
+        }
+        .column.in-progress {
+            background: #fffbeb;
+            border-color: #fed7aa;
+        }
+        .column.completed {
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+        }
+        .column-header {
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .task-count {
+            background: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        .task-card {
+            background: white;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 8px;
+            border: 1px solid #e5e7eb;
+            cursor: move;
+        }
+        .task-card:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .task-title {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        .task-description {
+            font-size: 12px;
+            color: #6b7280;
+        }
+        .priority-high { color: #dc2626; }
+        .priority-medium { color: #d97706; }
+        .priority-low { color: #059669; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="kanban-test">
+            <h1>🧪 Kanban Component Test</h1>
+            <p>Testing if the basic Kanban structure works independently</p>
+            
+            <div class="columns">
+                <div class="column planned">
+                    <div class="column-header">
+                        <span>Planned</span>
+                        <span class="task-count">2</span>
+                    </div>
+                    
+                    <div class="task-card" draggable="true">
+                        <div class="task-title">Task File Format Specification</div>
+                        <div class="task-description">Define JSON schema and file format for storing tasks</div>
+                        <div class="priority-medium">● Medium</div>
+                    </div>
+                    
+                    <div class="task-card" draggable="true">
+                        <div class="task-title">Drag and Drop Polish</div>
+                        <div class="task-description">Improve drag and drop interactions with visual feedback</div>
+                        <div class="priority-medium">● Medium</div>
+                    </div>
+                </div>
+                
+                <div class="column in-progress">
+                    <div class="column-header">
+                        <span>In Progress</span>
+                        <span class="task-count">1</span>
+                    </div>
+                    
+                    <div class="task-card" draggable="true">
+                        <div class="task-title">Task Persistence</div>
+                        <div class="task-description">Implement saving and loading of task state changes</div>
+                        <div class="priority-high">● High</div>
+                    </div>
+                </div>
+                
+                <div class="column completed">
+                    <div class="column-header">
+                        <span>Complete</span>
+                        <span class="task-count">2</span>
+                    </div>
+                    
+                    <div class="task-card" draggable="true">
+                        <div class="task-title">Implement Kanban Board UI</div>
+                        <div class="task-description">Create a 3-column Kanban board layout with drag-and-drop</div>
+                        <div class="priority-high">● High</div>
+                    </div>
+                    
+                    <div class="task-card" draggable="true">
+                        <div class="task-title">Add Feature Flag Support</div>
+                        <div class="task-description">Implement environment variable-based feature flag</div>
+                        <div class="priority-high">● High</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/babel">
+        // Test basic drag and drop functionality
+        const cards = document.querySelectorAll('.task-card');
+        const columns = document.querySelectorAll('.column');
+
+        cards.forEach(card => {
+            card.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', e.target.outerHTML);
+                e.target.style.opacity = '0.5';
+            });
+
+            card.addEventListener('dragend', (e) => {
+                e.target.style.opacity = '1';
+            });
+        });
+
+        columns.forEach(column => {
+            column.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                column.style.background = column.classList.contains('planned') ? '#dbeafe' : 
+                                         column.classList.contains('in-progress') ? '#fef3c7' : '#dcfce7';
+            });
+
+            column.addEventListener('dragleave', (e) => {
+                column.style.background = '';
+            });
+
+            column.addEventListener('drop', (e) => {
+                e.preventDefault();
+                column.style.background = '';
+                console.log('✅ Drop successful on', column.querySelector('.column-header span').textContent);
+            });
+        });
+
+        console.log('🧪 Kanban test page loaded successfully');
+    </script>
+</body>
+</html>

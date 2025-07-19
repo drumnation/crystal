@@ -10,6 +10,7 @@ interface ViewTabsProps {
     changes: boolean;
     terminal: boolean;
     editor: boolean;
+    planning: boolean;
   };
   setUnreadActivity: (activity: any) => void;
   jsonMessagesCount: number;
@@ -24,13 +25,22 @@ export const ViewTabs: React.FC<ViewTabsProps> = ({
   jsonMessagesCount,
   isTerminalRunning,
 }) => {
-  const tabs: { mode: ViewMode; label: string; count?: number, activity?: boolean, status?: boolean }[] = [
+  // Check for ENABLE_KANBAN environment variable
+  const isKanbanEnabled = import.meta.env.VITE_ENABLE_KANBAN === 'true' || 
+                         import.meta.env.ENABLE_KANBAN === 'true';
+
+  const baseTabs: { mode: ViewMode; label: string; count?: number, activity?: boolean, status?: boolean }[] = [
     { mode: 'output', label: 'Output', activity: unreadActivity.output },
     { mode: 'messages', label: 'Messages', count: jsonMessagesCount, activity: unreadActivity.messages },
     { mode: 'changes', label: 'View Diff', activity: unreadActivity.changes },
     { mode: 'terminal', label: 'Terminal', activity: unreadActivity.terminal, status: isTerminalRunning },
     { mode: 'editor', label: 'File Editor', activity: unreadActivity.editor },
   ];
+
+  // Conditionally add the planning tab if kanban is enabled
+  const tabs = isKanbanEnabled 
+    ? [...baseTabs, { mode: 'planning' as ViewMode, label: 'Planning', activity: unreadActivity.planning }]
+    : baseTabs;
 
   return (
     <div className="flex flex-col gap-2 relative z-10 mt-6">

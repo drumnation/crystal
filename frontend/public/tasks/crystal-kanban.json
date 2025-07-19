@@ -1,0 +1,63 @@
+{
+  "version": "1.0.0",
+  "lastModified": "2024-07-19T12:00:00Z",
+  "tasks": [
+    {
+      "id": "task-001",
+      "title": "Implement Kanban Board UI",
+      "description": "Create a 3-column Kanban board layout with drag-and-drop functionality for task management",
+      "status": "completed",
+      "priority": "high",
+      "createdAt": "2024-07-19T10:00:00Z",
+      "updatedAt": "2024-07-19T12:00:00Z",
+      "tags": ["frontend", "ui", "kanban"],
+      "assignee": "dev-team"
+    },
+    {
+      "id": "task-002", 
+      "title": "Add Feature Flag Support",
+      "description": "Implement environment variable-based feature flag for enabling/disabling Kanban functionality",
+      "status": "completed",
+      "priority": "high",
+      "createdAt": "2024-07-19T10:15:00Z",
+      "updatedAt": "2024-07-19T11:45:00Z",
+      "tags": ["backend", "config", "feature-flag"]
+    },
+    {
+      "id": "task-003",
+      "title": "Task File Format Specification",
+      "description": "Define JSON schema and file format for storing tasks in /tasks/*.json files",
+      "status": "in-progress", 
+      "priority": "medium",
+      "createdAt": "2024-07-19T10:30:00Z",
+      "tags": ["documentation", "schema", "api"]
+    },
+    {
+      "id": "task-004",
+      "title": "Drag and Drop Polish",
+      "description": "Improve drag and drop interactions with visual feedback and smooth animations",
+      "status": "planned",
+      "priority": "medium",
+      "createdAt": "2024-07-19T11:00:00Z",
+      "tags": ["frontend", "ux", "animation"]
+    },
+    {
+      "id": "task-005",
+      "title": "Task Persistence",
+      "description": "Implement saving and loading of task state changes back to JSON files",
+      "status": "planned",
+      "priority": "high",
+      "createdAt": "2024-07-19T11:15:00Z",
+      "tags": ["backend", "persistence", "file-io"]
+    },
+    {
+      "id": "task-006",
+      "title": "Task Creation UI",
+      "description": "Add modal or form interface for creating new tasks directly from the Kanban board",
+      "status": "planned",
+      "priority": "low",
+      "createdAt": "2024-07-19T11:30:00Z",
+      "tags": ["frontend", "form", "modal"]
+    }
+  ]
+}

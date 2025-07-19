@@ -14,6 +14,7 @@ import { CommitMessageDialog } from './session/CommitMessageDialog';
 import { PromptNavigation } from './PromptNavigation';
 import { isDocumentVisible } from '../utils/performanceUtils';
 import { FileEditor } from './FileEditor';
+import { PlanningView } from './PlanningView';
 
 export const SessionView = memo(() => {
   const activeSessionId = useSessionStore((state) => state.activeSessionId);
@@ -196,6 +197,9 @@ export const SessionView = memo(() => {
           </div>
           <div className={`h-full ${hook.viewMode === 'editor' ? 'block' : 'hidden'}`}>
             <FileEditor sessionId={activeSession.id} />
+          </div>
+          <div className={`h-full ${hook.viewMode === 'planning' ? 'block' : 'hidden'}`}>
+            <PlanningView />
           </div>
         </div>
         {hook.viewMode === 'output' && (
