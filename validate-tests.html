@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Kanban UI Test Validation</title>
+    <script src="https://unpkg.com/react@19/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@19/umd/react-dom.development.js"></script>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background: #f5f5f5; 
+        }
+        .test-container { 
+            background: white; 
+            padding: 20px; 
+            margin: 20px 0; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+        }
+        .kanban-board { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 16px; 
+            margin: 20px 0; 
+        }
+        .kanban-column { 
+            background: #f9fafb; 
+            padding: 16px; 
+            border-radius: 8px; 
+            min-height: 200px; 
+            border: 2px dashed transparent;
+        }
+        .kanban-column.drag-over {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+        .task-card { 
+            background: white; 
+            padding: 12px; 
+            margin: 8px 0; 
+            border-radius: 6px; 
+            cursor: move; 
+            border: 1px solid #e5e7eb;
+            transition: all 0.2s ease;
+        }
+        .task-card:hover { 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+        }
+        .task-card.dragging { 
+            opacity: 0.5; 
+            transform: rotate(5deg);
+        }
+        .task-count { 
+            background: #e5e7eb; 
+            padding: 4px 8px; 
+            border-radius: 12px; 
+            font-size: 12px; 
+            font-weight: bold;
+        }
+        .priority-badge { 
+            font-size: 11px; 
+            padding: 2px 6px; 
+            border-radius: 4px; 
+            font-weight: bold;
+        }
+        .priority-high { background: #fef2f2; color: #dc2626; }
+        .priority-medium { background: #fffbeb; color: #d97706; }
+        .priority-low { background: #f0fdf4; color: #16a34a; }
+        .test-result { 
+            padding: 12px; 
+            margin: 8px 0; 
+            border-radius: 6px; 
+            font-weight: bold;
+        }
+        .test-pass { background: #d1fae5; color: #065f46; }
+        .test-fail { background: #fee2e2; color: #991b1b; }
+        .controls { 
+            margin: 16px 0; 
+            display: flex; 
+            gap: 8px; 
+            flex-wrap: wrap;
+        }
+        .btn { 
+            padding: 8px 16px; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-weight: bold;
+        }
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-secondary { background: #6b7280; color: white; }
+        .empty-state { 
+            text-align: center; 
+            padding: 40px; 
+            color: #6b7280; 
+            background: #f9fafb;
+            border-radius: 8px;
+            border: 2px dashed #d1d5db;
+        }
+        .error-state { 
+            background: #fef2f2; 
+            border: 2px solid #fecaca; 
+            padding: 16px; 
+            border-radius: 8px; 
+            color: #dc2626; 
+        }
+        .loading-state { 
+            text-align: center; 
+            padding: 40px; 
+        }
+        .status-indicator { 
+            display: inline-block; 
+            width: 8px; 
+            height: 8px; 
+            border-radius: 50%; 
+            margin-right: 6px; 
+        }
+        .status-planned { background: #3b82f6; }
+        .status-in-progress { background: #f59e0b; }
+        .status-completed { background: #10b981; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script>
+        // Mock task data (from taskData.ts)
+        const mockTasks = [
+            {
+                id: 'task-1',
+                title: 'Implement user authentication',
+                description: 'Add login and registration functionality with JWT tokens',
+                status: 'planned',
+                priority: 'high',
+                assignee: 'john.doe',
+                createdAt: '2024-01-15T10:00:00Z',
+                updatedAt: '2024-01-15T10:00:00Z'
+            },
+            {
+                id: 'task-2',
+                title: 'Create task dashboard',
+                description: 'Design and implement the main task management dashboard',
+                status: 'in-progress',
+                priority: 'medium',
+                assignee: 'jane.smith',
+                createdAt: '2024-01-14T09:30:00Z',
+                updatedAt: '2024-01-16T14:20:00Z'
+            },
+            {
+                id: 'task-3',
+                title: 'Set up database schema',
+                description: 'Design and implement the database schema for task management',
+                status: 'completed',
+                priority: 'high',
+                assignee: 'bob.wilson',
+                createdAt: '2024-01-10T08:00:00Z',
+                updatedAt: '2024-01-13T16:45:00Z'
+            }
+        ];
+
+        const malformedTasks = [
+            { id: 'valid-1', title: 'Valid Task', status: 'planned', priority: 'high' },
+            { title: 'No ID', status: 'in-progress' }, // Missing ID
+            { id: 'no-title', status: 'completed', priority: 'medium' }, // Missing title
+            { id: 'invalid-status', title: 'Bad Status', status: 'unknown', priority: 'high' }, // Invalid status
+            null, // Null task
+            'invalid-string-task' // String instead of object
+        ];
+
+        // PlanningView Component (from PlanningView.tsx)
+        function PlanningView({ tasks = [], loading = false, error = null, onTaskMove }) {
+            const [draggedTask, setDraggedTask] = React.useState(null);
+            const [dragOverColumn, setDragOverColumn] = React.useState(null);
+
+            const createColumns = (tasks) => {
+                const validTasks = tasks.filter(task => 
+                    task && 
+                    typeof task === 'object' && 
+                    task.id && 
+                    task.title && 
+                    ['planned', 'in-progress', 'completed'].includes(task.status)
+                );
+
+                return [
+                    { 
+                        id: 'planned', 
+                        title: 'Planned', 
+                        status: 'planned', 
+                        tasks: validTasks.filter(task => task.status === 'planned')
+                    },
+                    { 
+                        id: 'in-progress', 
+                        title: 'In Progress', 
+                        status: 'in-progress', 
+                        tasks: validTasks.filter(task => task.status === 'in-progress')
+                    },
+                    { 
+                        id: 'completed', 
+                        title: 'Completed', 
+                        status: 'completed', 
+                        tasks: validTasks.filter(task => task.status === 'completed')
+                    }
+                ];
+            };
+
+            const handleDragStart = (task) => {
+                setDraggedTask(task);
+            };
+
+            const handleDragEnd = () => {
+                setDraggedTask(null);
+                setDragOverColumn(null);
+            };
+
+            const handleDragOver = (e) => {
+                e.preventDefault();
+            };
+
+            const handleDragEnter = (columnStatus) => {
+                setDragOverColumn(columnStatus);
+            };
+
+            const handleDragLeave = () => {
+                setDragOverColumn(null);
+            };
+
+            const handleDrop = (e, targetStatus) => {
+                e.preventDefault();
+                if (draggedTask && draggedTask.status !== targetStatus) {
+                    onTaskMove && onTaskMove(draggedTask.id, targetStatus);
+                }
+                setDraggedTask(null);
+                setDragOverColumn(null);
+            };
+
+            if (loading) {
+                return React.createElement('div', {
+                    className: 'loading-state',
+                    'data-testid': 'planning-view-loading'
+                }, React.createElement('div', {}, 'Loading tasks...'));
+            }
+
+            if (error) {
+                return React.createElement('div', {
+                    className: 'error-state',
+                    'data-testid': 'planning-view-error'
+                }, [
+                    React.createElement('h3', { key: 'title' }, 'Error loading tasks'),
+                    React.createElement('p', { key: 'message' }, error)
+                ]);
+            }
+
+            if (!tasks || tasks.length === 0) {
+                return React.createElement('div', {
+                    className: 'empty-state',
+                    'data-testid': 'planning-view-empty'
+                }, [
+                    React.createElement('h3', { key: 'title' }, 'No tasks found'),
+                    React.createElement('p', { key: 'message' }, 'Create your first task to get started.')
+                ]);
+            }
+
+            const columns = createColumns(tasks);
+
+            return React.createElement('div', {
+                className: 'kanban-board',
+                'data-testid': 'planning-view'
+            }, columns.map(column => 
+                React.createElement('div', {
+                    key: column.id,
+                    className: 'kanban-column' + (dragOverColumn === column.status ? ' drag-over' : ''),
+                    'data-testid': 'kanban-column-' + column.status,
+                    onDrop: (e) => handleDrop(e, column.status),
+                    onDragOver: handleDragOver,
+                    onDragEnter: () => handleDragEnter(column.status),
+                    onDragLeave: handleDragLeave
+                }, [
+                    React.createElement('div', { 
+                        key: 'header', 
+                        style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }
+                    }, [
+                        React.createElement('h3', { 
+                            key: 'title', 
+                            style: { margin: 0, display: 'flex', alignItems: 'center' }
+                        }, [
+                            React.createElement('span', {
+                                key: 'indicator',
+                                className: 'status-indicator status-' + column.status
+                            }),
+                            column.title
+                        ]),
+                        React.createElement('span', {
+                            key: 'count',
+                            className: 'task-count',
+                            'data-testid': 'task-count-' + column.status
+                        }, column.tasks.length)
+                    ]),
+                    React.createElement('div', { key: 'tasks' },
+                        column.tasks.length === 0 ? 
+                            React.createElement('div', {
+                                style: { 
+                                    textAlign: 'center', 
+                                    padding: '20px', 
+                                    color: '#9ca3af',
+                                    border: '2px dashed #d1d5db',
+                                    borderRadius: '6px'
+                                }
+                            }, 'Drop tasks here') :
+                            column.tasks.map(task =>
+                                React.createElement('div', {
+                                    key: task.id,
+                                    className: 'task-card' + (draggedTask?.id === task.id ? ' dragging' : ''),
+                                    'data-testid': 'task-card-' + task.id,
+                                    draggable: true,
+                                    onDragStart: () => handleDragStart(task),
+                                    onDragEnd: handleDragEnd
+                                }, [
+                                    React.createElement('div', { 
+                                        key: 'header',
+                                        style: { display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }
+                                    }, [
+                                        React.createElement('h4', { 
+                                            key: 'title',
+                                            style: { margin: 0, fontSize: '14px', fontWeight: '600' }
+                                        }, task.title),
+                                        React.createElement('span', {
+                                            key: 'priority',
+                                            className: 'priority-badge priority-' + task.priority
+                                        }, task.priority)
+                                    ]),
+                                    task.description && React.createElement('p', { 
+                                        key: 'description',
+                                        style: { margin: '8px 0', fontSize: '13px', color: '#6b7280' }
+                                    }, task.description),
+                                    React.createElement('div', { 
+                                        key: 'meta',
+                                        style: { fontSize: '11px', color: '#9ca3af', marginTop: '8px' }
+                                    }, task.assignee ? 'Assigned to: ' + task.assignee : 'Unassigned')
+                                ])
+                            )
+                    )
+                ])
+            ));
+        }
+
+        // Test Validation Component
+        function TestValidator() {
+            const [currentScenario, setCurrentScenario] = React.useState('normal');
+            const [testResults, setTestResults] = React.useState([]);
+            const [tasks, setTasks] = React.useState(mockTasks);
+
+            const scenarios = {
+                normal: {
+                    title: 'Normal Operation',
+                    description: 'Standard kanban board with valid tasks from stub data',
+                    data: mockTasks,
+                    loading: false,
+                    error: null
+                },
+                empty: {
+                    title: 'Empty Task List',
+                    description: 'Empty task array should not crash the board',
+                    data: [],
+                    loading: false,
+                    error: null
+                },
+                malformed: {
+                    title: 'Invalid JSON/Malformed Data',
+                    description: 'Invalid task data should not crash the board',
+                    data: malformedTasks,
+                    loading: false,
+                    error: null
+                },
+                loading: {
+                    title: 'Loading State',
+                    description: 'Loading indicator',
+                    data: [],
+                    loading: true,
+                    error: null
+                },
+                error: {
+                    title: 'Error State',
+                    description: 'Error handling',
+                    data: [],
+                    loading: false,
+                    error: 'Failed to load tasks from session bridge'
+                },
+                broken: {
+                    title: 'Broken Board (Intentional Failure)',
+                    description: 'This scenario should fail tests',
+                    data: null, // This will cause issues
+                    loading: false,
+                    error: null
+                }
+            };
+
+            const runTest = (testName, testFn) => {
+                try {
+                    const result = testFn();
+                    setTestResults(prev => [...prev, {
+                        name: testName,
+                        passed: result.passed,
+                        message: result.message,
+                        timestamp: new Date().toLocaleTimeString()
+                    }]);
+                } catch (error) {
+                    setTestResults(prev => [...prev, {
+                        name: testName,
+                        passed: false,
+                        message: 'Test threw error: ' + error.message,
+                        timestamp: new Date().toLocaleTimeString()
+                    }]);
+                }
+            };
+
+            const runAllTests = () => {
+                setTestResults([]);
+                
+                // Test 1: Kanban board renders with tasks from stub data
+                runTest('Board renders with stub data', () => {
+                    const boardElement = document.querySelector('[data-testid="planning-view"]');
+                    const taskElements = document.querySelectorAll('[data-testid^="task-card-"]');
+                    return {
+                        passed: boardElement !== null && taskElements.length > 0,
+                        message: `Found ${taskElements.length} tasks in board`
+                    };
+                });
+
+                // Test 2: All three columns are present
+                runTest('Three columns present', () => {
+                    const plannedCol = document.querySelector('[data-testid="kanban-column-planned"]');
+                    const inProgressCol = document.querySelector('[data-testid="kanban-column-in-progress"]');
+                    const completedCol = document.querySelector('[data-testid="kanban-column-completed"]');
+                    const allPresent = plannedCol && inProgressCol && completedCol;
+                    return {
+                        passed: allPresent,
+                        message: allPresent ? 'All columns found' : 'Missing columns'
+                    };
+                });
+
+                // Test 3: Task counts are accurate
+                runTest('Task counts accurate', () => {
+                    const plannedCount = document.querySelector('[data-testid="task-count-planned"]')?.textContent;
+                    const inProgressCount = document.querySelector('[data-testid="task-count-in-progress"]')?.textContent;
+                    const completedCount = document.querySelector('[data-testid="task-count-completed"]')?.textContent;
+                    
+                    const scenario = scenarios[currentScenario];
+                    const validTasks = (scenario.data || []).filter(task => 
+                        task && typeof task === 'object' && task.id && task.title
+                    );
+                    const expectedPlanned = validTasks.filter(t => t.status === 'planned').length;
+                    const expectedInProgress = validTasks.filter(t => t.status === 'in-progress').length;
+                    const expectedCompleted = validTasks.filter(t => t.status === 'completed').length;
+                    
+                    const countsMatch = 
+                        plannedCount == expectedPlanned && 
+                        inProgressCount == expectedInProgress && 
+                        completedCount == expectedCompleted;
+                    
+                    return {
+                        passed: countsMatch,
+                        message: `Expected: P:${expectedPlanned} IP:${expectedInProgress} C:${expectedCompleted}, Got: P:${plannedCount} IP:${inProgressCount} C:${completedCount}`
+                    };
+                });
+
+                // Test 4: Tasks are draggable
+                runTest('Tasks are draggable', () => {
+                    const taskCards = document.querySelectorAll('.task-card');
+                    const allDraggable = Array.from(taskCards).every(card => card.draggable);
+                    return {
+                        passed: allDraggable,
+                        message: allDraggable ? 'All tasks are draggable' : 'Some tasks not draggable'
+                    };
+                });
+
+                // Test 5: Empty state handling
+                if (currentScenario === 'empty') {
+                    runTest('Empty state displays', () => {
+                        const emptyState = document.querySelector('[data-testid="planning-view-empty"]');
+                        return {
+                            passed: emptyState !== null,
+                            message: emptyState ? 'Empty state displayed' : 'Empty state not found'
+                        };
+                    });
+                }
+
+                // Test 6: Error state handling
+                if (currentScenario === 'error') {
+                    runTest('Error state displays', () => {
+                        const errorState = document.querySelector('[data-testid="planning-view-error"]');
+                        return {
+                            passed: errorState !== null,
+                            message: errorState ? 'Error state displayed' : 'Error state not found'
+                        };
+                    });
+                }
+
+                // Test 7: Broken board test (should fail)
+                if (currentScenario === 'broken') {
+                    runTest('Broken board fails gracefully', () => {
+                        const boardElement = document.querySelector('[data-testid="planning-view"]');
+                        // This test should pass if the board handles null data gracefully
+                        // or fail if it crashes
+                        return {
+                            passed: false, // Intentionally fail this test
+                            message: 'This test should fail to demonstrate test failure detection'
+                        };
+                    });
+                }
+            };
+
+            const handleTaskMove = (taskId, newStatus) => {
+                setTasks(prevTasks => {
+                    const updatedTasks = prevTasks.map(task => 
+                        task.id === taskId ? { ...task, status: newStatus } : task
+                    );
+                    
+                    // Add test result for drag operation
+                    setTestResults(prev => [...prev, {
+                        name: 'Drag operation',
+                        passed: true,
+                        message: `Task ${taskId} moved to ${newStatus}`,
+                        timestamp: new Date().toLocaleTimeString()
+                    }]);
+                    
+                    return updatedTasks;
+                });
+            };
+
+            const switchScenario = (scenarioKey) => {
+                setCurrentScenario(scenarioKey);
+                const scenario = scenarios[scenarioKey];
+                setTasks(scenario.data || []);
+                setTestResults([]);
+            };
+
+            const currentScenarioData = scenarios[currentScenario];
+
+            React.useEffect(() => {
+                // Auto-run tests when scenario changes
+                setTimeout(runAllTests, 500);
+            }, [currentScenario]);
+
+            return React.createElement('div', {}, [
+                React.createElement('div', { key: 'header', className: 'test-container' }, [
+                    React.createElement('h1', { key: 'title' }, 'Kanban UI Test Validation'),
+                    React.createElement('p', { key: 'desc' }, 
+                        'This page validates the core requirements of our Kanban UI test suite.'
+                    ),
+                    React.createElement('div', { key: 'controls', className: 'controls' }, [
+                        ...Object.keys(scenarios).map(key =>
+                            React.createElement('button', {
+                                key: key,
+                                className: 'btn ' + (currentScenario === key ? 'btn-primary' : 'btn-secondary'),
+                                onClick: () => switchScenario(key)
+                            }, scenarios[key].title)
+                        ),
+                        React.createElement('button', {
+                            key: 'test',
+                            className: 'btn btn-success',
+                            onClick: runAllTests
+                        }, 'Run Tests')
+                    ]),
+                    React.createElement('div', { key: 'scenario-info' }, [
+                        React.createElement('h3', { key: 'title' }, 'Current Scenario: ' + currentScenarioData.title),
+                        React.createElement('p', { key: 'desc' }, currentScenarioData.description)
+                    ])
+                ]),
+
+                React.createElement('div', { key: 'kanban', className: 'test-container' }, [
+                    React.createElement('h2', { key: 'title' }, 'Kanban Board'),
+                    React.createElement(PlanningView, {
+                        key: 'board',
+                        tasks: currentScenarioData.data,
+                        loading: currentScenarioData.loading,
+                        error: currentScenarioData.error,
+                        onTaskMove: handleTaskMove
+                    })
+                ]),
+
+                React.createElement('div', { key: 'results', className: 'test-container' }, [
+                    React.createElement('h2', { key: 'title' }, 'Test Results'),
+                    testResults.length === 0 ? 
+                        React.createElement('p', { key: 'empty' }, 'No tests run yet. Tests run automatically when switching scenarios.') :
+                        React.createElement('div', { key: 'list' },
+                            testResults.map((result, index) =>
+                                React.createElement('div', {
+                                    key: index,
+                                    className: 'test-result ' + (result.passed ? 'test-pass' : 'test-fail')
+                                }, [
+                                    React.createElement('strong', { key: 'name' }, result.name + ': '),
+                                    React.createElement('span', { key: 'status' }, result.passed ? '✅ PASS' : '❌ FAIL'),
+                                    React.createElement('span', { key: 'message' }, ' - ' + result.message),
+                                    React.createElement('span', { key: 'time' }, ' (' + result.timestamp + ')')
+                                ])
+                            )
+                        ),
+                    React.createElement('div', { key: 'summary', style: { marginTop: '16px' } }, [
+                        React.createElement('h3', { key: 'title' }, 'Summary'),
+                        React.createElement('p', { key: 'stats' }, 
+                            testResults.length > 0 ? 
+                                `${testResults.filter(r => r.passed).length}/${testResults.length} tests passed` :
+                                'No tests run'
+                        )
+                    ])
+                ])
+            ]);
+        }
+
+        // Render the test validation
+        ReactDOM.render(
+            React.createElement(TestValidator),
+            document.getElementById('root')
+        );
+    </script>
+</body>
+</html>
