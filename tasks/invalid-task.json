@@ -1,0 +1,8 @@
+{
+  "id": "task-005",
+  "title": "This task is missing required fields",
+  "description": "This task file is intentionally invalid to test error handling",
+  "status": "invalid-status",
+  "assignee": "Test Team",
+  "createdAt": "2024-01-23T10:00:00Z"
+}

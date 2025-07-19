@@ -618,4 +618,135 @@ EOF
       };
     }
   });
+
+  // List files and directories in a project's root directory
+  ipcMain.handle('file:list-project', async (_, request: { projectId: number; path?: string }) => {
+    try {
+      const project = databaseService.getProject(request.projectId);
+      if (!project) {
+        throw new Error(`Project not found: ${request.projectId}`);
+      }
+
+      // Use the provided path or default to root
+      const relativePath = request.path || '';
+      
+      // Ensure the path is relative and safe
+      if (relativePath) {
+        const normalizedPath = path.normalize(relativePath);
+        if (normalizedPath.startsWith('..') || path.isAbsolute(normalizedPath)) {
+          throw new Error('Invalid path');
+        }
+      }
+
+      const targetPath = relativePath ? path.join(project.path, relativePath) : project.path;
+      
+      // Check if target path exists
+      try {
+        await fs.access(targetPath);
+      } catch {
+        return { success: true, files: [] };
+      }
+      
+      // Read directory contents
+      const entries = await fs.readdir(targetPath, { withFileTypes: true });
+      
+      // Process each entry
+      const files: FileItem[] = await Promise.all(
+        entries
+          .filter(entry => entry.name !== '.git') // Exclude .git directory only
+          .map(async (entry) => {
+            const fullPath = path.join(targetPath, entry.name);
+            const relativePath = path.relative(project.path, fullPath);
+            
+            try {
+              const stats = await fs.stat(fullPath);
+              return {
+                name: entry.name,
+                path: relativePath,
+                isDirectory: entry.isDirectory(),
+                size: entry.isFile() ? stats.size : undefined,
+                modified: stats.mtime
+              };
+            } catch (error) {
+              // Handle broken symlinks or inaccessible files
+              return {
+                name: entry.name,
+                path: relativePath,
+                isDirectory: entry.isDirectory()
+              };
+            }
+          })
+      );
+
+      // Sort: directories first, then alphabetically
+      files.sort((a, b) => {
+        if (a.isDirectory === b.isDirectory) {
+          return a.name.localeCompare(b.name);
+        }
+        return a.isDirectory ? -1 : 1;
+      });
+
+      return { success: true, files };
+    } catch (error) {
+      console.error('Error listing project files:', error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      };
+    }
+  });
+
+  // Read file contents from a project's root directory
+  ipcMain.handle('file:read-project', async (_, request: { projectId: number; filePath: string }) => {
+    try {
+      const project = databaseService.getProject(request.projectId);
+      if (!project) {
+        throw new Error(`Project not found: ${request.projectId}`);
+      }
+
+      // Ensure the file path is relative and safe
+      const normalizedPath = path.normalize(request.filePath);
+      if (normalizedPath.startsWith('..') || path.isAbsolute(normalizedPath)) {
+        throw new Error('Invalid file path');
+      }
+
+      const fullPath = path.join(project.path, normalizedPath);
+      
+      // Verify the file is within the project directory
+      const resolvedProjectPath = await fs.realpath(project.path).catch(() => project.path);
+      
+      let resolvedFilePath: string;
+      try {
+        resolvedFilePath = await fs.realpath(fullPath);
+      } catch (err) {
+        // File doesn't exist, check if its directory is within the project
+        const dirPath = path.dirname(fullPath);
+        try {
+          const resolvedDirPath = await fs.realpath(dirPath);
+          if (!resolvedDirPath.startsWith(resolvedProjectPath)) {
+            throw new Error('File path is outside project directory');
+          }
+          // File doesn't exist but directory is valid
+          resolvedFilePath = fullPath;
+        } catch {
+          // Directory doesn't exist either, just use the full path for validation
+          resolvedFilePath = fullPath;
+        }
+      }
+      
+      // Check if the resolved path is within the project directory
+      if (!resolvedFilePath.startsWith(resolvedProjectPath) && !fullPath.startsWith(project.path)) {
+        throw new Error('File path is outside project directory');
+      }
+
+      const content = await fs.readFile(resolvedFilePath, 'utf-8');
+      return { success: true, content };
+    } catch (error) {
+      console.error('Error reading project file:', error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      };
+    }
+  });
 }

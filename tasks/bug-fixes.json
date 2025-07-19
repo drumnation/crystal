@@ -1,0 +1,12 @@
+{
+  "id": "task-004",
+  "title": "Fix memory leak in image processing",
+  "description": "Investigate and fix memory leak that occurs when processing large images",
+  "status": "todo",
+  "priority": "high",
+  "assignee": "Performance Team",
+  "tags": ["bug", "memory", "images", "performance"],
+  "createdAt": "2024-01-22T11:30:00Z",
+  "updatedAt": "2024-01-22T11:30:00Z",
+  "dueDate": "2024-01-30T23:59:59Z"
+}

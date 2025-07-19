@@ -141,6 +141,12 @@ interface ElectronAPI {
     getByPromptId: (promptId: string) => Promise<IPCResponse>;
   };
 
+  // File operations
+  file: {
+    listProject: (projectId: number, path?: string) => Promise<IPCResponse>;
+    readProject: (projectId: number, filePath: string) => Promise<IPCResponse>;
+  };
+
   // Dialog
   dialog: {
     openFile: (options?: any) => Promise<IPCResponse<string | null>>;

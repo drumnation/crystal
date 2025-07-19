@@ -5,6 +5,8 @@ import { useResizable } from './hooks/useResizable';
 import { Sidebar } from './components/Sidebar';
 import { SessionView } from './components/SessionView';
 import { PromptHistoryModal } from './components/PromptHistoryModal';
+import { PlanningView } from './components/PlanningView';
+import { TaskPlanningModal } from './components/TaskPlanningModal';
 import Help from './components/Help';
 import Welcome from './components/Welcome';
 import { AboutDialog } from './components/AboutDialog';
@@ -37,6 +39,7 @@ function App() {
   const [hasCheckedWelcome, setHasCheckedWelcome] = useState(false);
   const [isPromptHistoryOpen, setIsPromptHistoryOpen] = useState(false);
   const [isKanbanOpen, setIsKanbanOpen] = useState(false);
+  const [isPlanningOpen, setIsPlanningOpen] = useState(false);
   const { currentError, clearError } = useErrorStore();
   const { sessions, isLoaded } = useSessionStore();
   
@@ -260,6 +263,7 @@ function App() {
         onHelpClick={() => setIsHelpOpen(true)}
         onAboutClick={() => setIsAboutOpen(true)}
         onPromptHistoryClick={() => setIsPromptHistoryOpen(true)}
+        onPlanningClick={() => setIsPlanningOpen(true)}
         width={sidebarWidth}
         onResize={startResize}
       />
@@ -292,6 +296,10 @@ function App() {
       <PromptHistoryModal
         isOpen={isPromptHistoryOpen}
         onClose={() => setIsPromptHistoryOpen(false)}
+      />
+      <TaskPlanningModal
+        isOpen={isPlanningOpen}
+        onClose={() => setIsPlanningOpen(false)}
       />
     </div>
   );

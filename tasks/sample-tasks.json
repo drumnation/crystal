@@ -1,0 +1,37 @@
+[
+  {
+    "id": "task-001",
+    "title": "Implement user authentication",
+    "description": "Set up secure user login and registration system",
+    "status": "in-progress",
+    "priority": "high",
+    "assignee": "Frontend Team",
+    "tags": ["auth", "security", "frontend"],
+    "createdAt": "2024-01-15T10:00:00Z",
+    "updatedAt": "2024-01-20T14:30:00Z",
+    "dueDate": "2024-02-01T23:59:59Z"
+  },
+  {
+    "id": "task-002",
+    "title": "Database optimization",
+    "description": "Optimize database queries for better performance",
+    "status": "todo",
+    "priority": "medium",
+    "assignee": "Backend Team",
+    "tags": ["database", "performance", "backend"],
+    "createdAt": "2024-01-16T09:15:00Z",
+    "updatedAt": "2024-01-16T09:15:00Z",
+    "dueDate": "2024-02-15T23:59:59Z"
+  },
+  {
+    "id": "task-003",
+    "title": "Update documentation",
+    "description": "Update API documentation with latest changes",
+    "status": "done",
+    "priority": "low",
+    "assignee": "Documentation Team",
+    "tags": ["docs", "api"],
+    "createdAt": "2024-01-10T08:00:00Z",
+    "updatedAt": "2024-01-18T16:45:00Z"
+  }
+]

@@ -1,18 +1,19 @@
 import { useState, useEffect } from 'react';
 import { Settings } from './Settings';
 import { DraggableProjectTreeView } from './DraggableProjectTreeView';
-import { Info, Clock } from 'lucide-react';
+import { Info, Clock, Kanban } from 'lucide-react';
 import crystalLogo from '../assets/crystal-logo.svg';
 
 interface SidebarProps {
   onHelpClick: () => void;
   onAboutClick: () => void;
   onPromptHistoryClick: () => void;
+  onPlanningClick: () => void;
   width: number;
   onResize: (e: React.MouseEvent) => void;
 }
 
-export function Sidebar({ onHelpClick, onAboutClick, onPromptHistoryClick, width, onResize }: SidebarProps) {
+export function Sidebar({ onHelpClick, onAboutClick, onPromptHistoryClick, onPlanningClick, width, onResize }: SidebarProps) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showStatusGuide, setShowStatusGuide] = useState(false);
   const [version, setVersion] = useState<string>('');
@@ -98,6 +99,13 @@ export function Sidebar({ onHelpClick, onAboutClick, onPromptHistoryClick, width
           <div className="px-4 py-2 text-sm uppercase flex items-center justify-between overflow-hidden">
             <span className="truncate text-gray-700 dark:text-gray-400">Projects & Sessions</span>
             <div className="flex items-center space-x-1">
+              <button 
+                className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"
+                title="Task Planning Dashboard (Test)"
+                onClick={onPlanningClick}
+              >
+                <Kanban className="w-4 h-4" />
+              </button>
               <button 
                 className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"
                 title="View Prompt History (Cmd/Ctrl + P)"

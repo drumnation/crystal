@@ -1,0 +1,8 @@
+{
+  "id": "task-006",
+  "title": "This JSON is malformed"
+  "description": "Missing comma to test JSON parsing error handling",
+  "status": "todo",
+  "priority": "low",
+  "createdAt": "2024-01-23T10:30:00Z",
+  "updatedAt": "2024-01-23T10:30:00Z"

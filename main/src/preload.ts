@@ -141,6 +141,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getByPromptId: (promptId: string): Promise<IPCResponse> => ipcRenderer.invoke('prompts:get-by-id', promptId),
   },
 
+  // File operations
+  file: {
+    listProject: (projectId: number, path?: string): Promise<IPCResponse> => ipcRenderer.invoke('file:list-project', { projectId, path }),
+    readProject: (projectId: number, filePath: string): Promise<IPCResponse> => ipcRenderer.invoke('file:read-project', { projectId, filePath }),
+  },
+
   // Dialog
   dialog: {
     openFile: (options?: any): Promise<IPCResponse<string | null>> => ipcRenderer.invoke('dialog:open-file', options),
