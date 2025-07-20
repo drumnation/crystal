@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Calendar, User, Tag, AlertCircle, CheckCircle, Clock, Loader2 } from 'lucide-react';
 import { loadTasks, Task } from '../../../kanban/logic/taskLoader';
+import { KanbanBoard } from './kanban/KanbanBoard';
 
 interface TaskPlanningModalProps {
   isOpen: boolean;
@@ -250,22 +251,8 @@ export function TaskPlanningModal({ isOpen, onClose }: TaskPlanningModalProps) {
               </div>
             </div>
           ) : (
-            <div className="h-full flex space-x-6 overflow-auto">
-              <TaskColumn 
-                title="To Do" 
-                tasks={tasksByStatus.todo} 
-                count={tasksByStatus.todo.length}
-              />
-              <TaskColumn 
-                title="In Progress" 
-                tasks={tasksByStatus.inProgress} 
-                count={tasksByStatus.inProgress.length}
-              />
-              <TaskColumn 
-                title="Done" 
-                tasks={tasksByStatus.done} 
-                count={tasksByStatus.done.length}
-              />
+            <div className="h-full overflow-auto">
+              <KanbanBoard className="h-full" />
             </div>
           )}
         </div>

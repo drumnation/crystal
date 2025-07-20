@@ -7,13 +7,14 @@ export interface Task {
   id: string;
   title: string;
   description?: string;
-  status: 'todo' | 'in-progress' | 'done';
+  status: 'todo' | 'in-progress' | 'done' | 'planned' | 'completed';
   priority: 'low' | 'medium' | 'high';
   assignee?: string;
   tags?: string[];
   createdAt: string;
   updatedAt: string;
   dueDate?: string;
+  branch?: string;            // Git branch/worktree assignment
 }
 
 interface TaskFile {
@@ -45,7 +46,8 @@ function isValidTask(obj: any): obj is Task {
     return false;
   }
 
-  if (!['todo', 'in-progress', 'done'].includes(obj.status)) {
+  // Support both old and new status formats
+  if (!['todo', 'in-progress', 'done', 'planned', 'completed'].includes(obj.status)) {
     return false;
   }
 

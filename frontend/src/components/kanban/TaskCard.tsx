@@ -3,9 +3,10 @@ import { Task } from './types';
 
 interface TaskCardProps {
   task: Task;
+  isActive?: boolean;
 }
 
-export function TaskCard({ task }: TaskCardProps) {
+export function TaskCard({ task, isActive = false }: TaskCardProps) {
   const handleDragStart = (e: React.DragEvent) => {
     e.dataTransfer.setData('text/plain', task.id);
   };
@@ -43,7 +44,11 @@ export function TaskCard({ task }: TaskCardProps) {
 
   return (
     <div
-      className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 cursor-move hover:shadow-md transition-shadow"
+      className={`bg-white dark:bg-gray-800 rounded-lg border p-4 cursor-move hover:shadow-md transition-shadow ${
+        isActive 
+          ? 'border-amber-400 dark:border-amber-500 shadow-md' 
+          : 'border-gray-200 dark:border-gray-700'
+      }`}
       draggable
       onDragStart={handleDragStart}
     >

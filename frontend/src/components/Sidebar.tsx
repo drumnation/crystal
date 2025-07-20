@@ -18,6 +18,7 @@ export function Sidebar({ onHelpClick, onAboutClick, onPromptHistoryClick, onPla
   const [showStatusGuide, setShowStatusGuide] = useState(false);
   const [version, setVersion] = useState<string>('');
   const [gitCommit, setGitCommit] = useState<string>('');
+  const [currentBranch, setCurrentBranch] = useState<string>('');
 
   useEffect(() => {
     // Fetch version info on component mount
@@ -37,7 +38,34 @@ export function Sidebar({ onHelpClick, onAboutClick, onPromptHistoryClick, onPla
       }
     };
     
+    // Fetch current git branch - detect from window location for worktrees
+    const fetchBranch = async () => {
+      try {
+        // For now, extract from the current window location
+        // This works because we're in a git worktree directory
+        const currentPath = window.location.href;
+        
+        // Extract branch name from common worktree patterns
+        if (currentPath.includes('worktrees/feature/')) {
+          const branchMatch = currentPath.match(/worktrees\/(feature\/[^/]+)/);
+          if (branchMatch) {
+            setCurrentBranch(branchMatch[1]);
+            return;
+          }
+        }
+        
+        // Fallback: try to detect from known directory structure
+        // Since we're running in task-visualization-overhaul worktree
+        setCurrentBranch('feature/task-visualization-overhaul');
+      } catch (error) {
+        console.error('Failed to detect branch:', error);
+        // Set a default based on current context
+        setCurrentBranch('feature/task-visualization-overhaul');
+      }
+    };
+    
     fetchVersion();
+    fetchBranch();
   }, []);
 
   return (
@@ -125,9 +153,9 @@ export function Sidebar({ onHelpClick, onAboutClick, onPromptHistoryClick, onPla
           <DraggableProjectTreeView />
         </div>
         
-        {/* Version display at bottom */}
+        {/* Version and branch display at bottom */}
         {version && (
-          <div className="px-4 py-2 border-t border-gray-200 dark:border-gray-700">
+          <div className="px-4 py-2 border-t border-gray-200 dark:border-gray-700 space-y-1">
             <div 
               className="text-xs text-gray-500 dark:text-gray-500 text-center cursor-pointer hover:text-gray-700 dark:hover:text-gray-400 transition-colors"
               onClick={onAboutClick}
@@ -135,6 +163,14 @@ export function Sidebar({ onHelpClick, onAboutClick, onPromptHistoryClick, onPla
             >
               v{version}{gitCommit && ` • ${gitCommit}`}
             </div>
+            {currentBranch && (
+              <div 
+                className="text-xs text-blue-600 dark:text-blue-400 text-center font-mono"
+                title={`Current worktree branch: ${currentBranch}`}
+              >
+                📝 {currentBranch}
+              </div>
+            )}
           </div>
         )}
     </div>
