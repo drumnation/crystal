@@ -1,147 +1,169 @@
-# Crystal - Multi-Session Claude Code Manager
-
-<div align="center">
-  <h3><a href="https://github.com/stravu/crystal/releases/latest">**Get the Latest Release Here**</a></h3>
-</div>
-
-<div align="center">
-
-[![Build](https://github.com/stravu/crystal/actions/workflows/build.yml/badge.svg)](https://github.com/stravu/crystal/actions/workflows/build.yml)
-[![Quality](https://github.com/stravu/crystal/actions/workflows/quality.yml/badge.svg)](https://github.com/stravu/crystal/actions/workflows/quality.yml)
-[![Join our Discord](https://img.shields.io/badge/Join%20our-Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/XrVa6q7DPY)
-
-</div>
-
-Crystal is an Electron desktop application that lets you run, inspect, and test multiple Claude Code instances simultaneously using git worktrees. Crystal is an independent project created by [Stravu](https://stravu.com/?utm_source=Crystal&utm_medium=OS&utm_campaign=Crystal&utm_id=1). Stravu provides editable, collaborate AI notebooks with text, tables, diagrams.
-
-
-
-https://github.com/user-attachments/assets/e32f0ee7-c25a-43d6-a704-8a39878032eb
-
-
-
-## The Crystal Workflow
-
-1. Create sessions from prompts, each in an isolated git worktree
-2. Iterate with Claude Code inside your sessions. Each iteration will make a commit so you can always go back.
-3. Review the diff changes and make manual edits as needed
-4. Squash your commits together with a new message and rebase to your main branch.
-
-## ✨ Key Features
-
-- **🚀 Parallel Sessions** - Run multiple Claude Code instances at once
-- **🌳 Git Worktree Isolation** - Each session gets its own branch
-- **💾 Session Persistence** - Resume conversations anytime
-- **🔧 Git Integration** - Built-in rebase and squash operations
-- **📊 Change Tracking** - View diffs and track modifications
-- **🔔 Notifications** - Desktop alerts when sessions need input
-- **🏗️ Run Scripts** - Test changes instantly without leaving Crystal
-
-## 🚀 Quick Start
-
-### Prerequisites
-- Claude Code installed and logged in or API key provided
-- Git installed
-- Git repository (Crystal will initialize one if needed)
-
-### 1. Create a Project
-Create a new project if you haven't already. This can be an empty folder or an existing git repository. Crystal will initialize git if needed.
-
-### 2. Create Sessions from a Prompt
-For any feature you're working on, create one or multiple new sessions:
-- Each session will be an isolated git worktree
-
-### 3. Monitor and Test Your Changes
-As sessions complete:
-- **Configure run scripts** in project settings to test your application without leaving Crystal
-- **Use the diff viewer** to review all changes and make manual edits as needed
-- **Continue conversations** with Claude Code if you need additional changes
-
-### 4. Finalize Your Changes
-When everything looks good:
-- Click **"Rebase to main"** to squash all commits with a new message and rebase them to your main branch
-- This creates a clean commit history on your main branch
-
-### Git Operations
-- **Rebase from main**: Pull latest changes from main into your worktree
-- **Squash and rebase to main**: Combine all commits and rebase onto main
-- Always preview commands with tooltips before executing
-
-
-
-## Installation
-
-### Download Pre-built Binaries
-
-- **macOS**: Download `Crystal-{version}.dmg` from the [latest release](https://github.com/stravu/crystal/releases/latest)
-  - Open the DMG file and drag Crystal to your Applications folder
-  - On first launch, you may need to right-click and select "Open" due to macOS security settings
-
-
-## Building from Source
-
-```bash
-# Clone the repository
-git clone https://github.com/stravu/crystal.git
-cd crystal
-
-# One-time setup
-pnpm run setup
-
-# Run in development
-pnpm run electron-dev
-```
-
-## Building for Production
-
-```bash
-# Build for macOS
 pnpm build:mac
 ```
+
+## Setting Up New Worktrees
+
+When Crystal creates new worktrees for sessions, they need to be properly bootstrapped with dependencies. This section explains the setup process, configuration, and solutions for common issues.
+
+### System Requirements
+
+- **Node.js**: >= 22.14.0
+- **pnpm**: >= 8.0.0 (REQUIRED - install with `npm install -g pnpm`)
+- **Memory**: >= 8GB RAM recommended (4GB minimum with memory-safe options)
+
+### Crystal Configuration
+
+To ensure Crystal properly sets up new worktrees, configure your project settings with:
+
+- **Build Script**: `node --max-old-space-size=4096 scripts/setup-worktree.mjs`
+- **Run Commands**: `pnpm run dev`
+
+The setup script automatically:
+1. Validates pnpm installation (required for workspace management)
+2. Uses memory-safe installation options
+3. Handles corrupted states and memory constraints
+4. Rebuilds native modules for Electron
+5. Builds the main process TypeScript files
+
+### Manual Setup
+
+```bash
+# Install pnpm if not already installed
+npm install -g pnpm
+
+# Run the setup script with memory optimization
+node --max-old-space-size=4096 scripts/setup-worktree.mjs
+
+# Start development server
+pnpm run dev
+```
+
+**Note**: npm is NOT recommended as it breaks workspace linking. Only use `--use-npm` flag as an absolute last resort.
+
+### Troubleshooting
+
+#### Memory Issues
+
+If you encounter "JavaScript heap out of memory" errors:
+
+1. **Use the memory-optimized setup command**:
+   ```bash
+   node --max-old-space-size=4096 scripts/setup-worktree.mjs
+   ```
+
+2. **Close other applications** to free up system memory
+
+3. **Try progressive installation** (the script will attempt this automatically)
+
+4. **Try the memory-safe installation script**:
+   ```bash
+   # Uses aggressive memory optimization for pnpm
+   bash scripts/pnpm-install-safe.sh
+   ```
+
+5. **If pnpm continues to fail due to environment constraints**:
+   ```bash
+   # Temporary workaround using npm
+   bash scripts/install-workaround.sh
+   ```
+   **IMPORTANT**: This is a temporary solution. Once memory constraints are resolved:
+   - Close memory-intensive applications
+   - Run: `node scripts/setup-worktree.mjs --clean`
+   - Run: `node --max-old-space-size=8192 scripts/setup-worktree.mjs`
+
+#### Corrupted State
+
+If you see warnings about mixed package managers or corrupted installations:
+
+1. **Run the cleanup command**:
+   ```bash
+   node scripts/setup-worktree.mjs --clean
+   ```
+   This will:
+   - Remove all node_modules directories
+   - Clear pnpm and npm caches
+   - Prepare for a fresh installation
+
+2. **Reinstall dependencies**:
+   ```bash
+   node --max-old-space-size=4096 scripts/setup-worktree.mjs
+   ```
+
+#### Package Manager Issues
+
+**pnpm is REQUIRED for Crystal projects**
+- Crystal uses pnpm workspaces for proper dependency management
+- npm breaks workspace linking and causes dependency issues
+- Only use npm (`--use-npm` flag) as an absolute last resort
+
+**If you see npm warnings:**
+```
+npm warn Unknown project config "public-hoist-pattern"
+```
+This means npm is being used instead of pnpm. Install pnpm and run the setup again.
+
+#### Workspace Linking
+
+If dependencies are missing in worktrees:
+
+1. **Ensure pnpm is installed**:
+   ```bash
+   npm install -g pnpm
+   ```
+
+2. **Run the setup script**:
+   ```bash
+   node --max-old-space-size=4096 scripts/setup-worktree.mjs
+   ```
+
+3. **If installation fails**, try:
+   ```bash
+   pnpm install --no-frozen-lockfile
+   ```
+
+#### Native Module Problems
+
+If better-sqlite3, node-pty, or other native modules fail:
+
+1. **Run the rebuild command**:
+   ```bash
+   pnpm run electron:rebuild
+   ```
+
+2. **Ensure build tools are installed**:
+   - macOS: Xcode Command Line Tools
+   - Windows: Visual Studio Build Tools
+   - Linux: build-essential package
+
+3. **Check Node.js/Electron compatibility**:
+   The Node.js version must match Electron's Node.js version
+
+### Quick Fix Commands
+
+```bash
+# Clean corrupted installation
+node scripts/setup-worktree.mjs --clean
+
+# Memory-safe installation with pnpm
+node --max-old-space-size=4096 scripts/setup-worktree.mjs
+
+# Last resort: Force npm (NOT RECOMMENDED - breaks workspaces)
+node --max-old-space-size=4096 scripts/setup-worktree.mjs --use-npm
+
+# Check your environment
+node --version  # Should be >= 22.14.0
+pnpm --version  # Should be >= 8.0.0
+```
+
+### Crystal Project Settings Summary
+
+After successful setup, use these settings in Crystal:
+
+| Setting | Value |
+|---------|-------|
+| Build Script | `node --max-old-space-size=4096 scripts/setup-worktree.mjs` |
+| Run Command | `pnpm run dev` |
 
 
 
 ## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
-
-### Developing Crystal with Crystal
-
-If you're using Crystal to develop Crystal itself, you need to use a separate data directory to avoid conflicts with your main Crystal instance:
-
-```bash
-# Set the run script in your Crystal project settings to:
-pnpm run setup && pnpm run build:main && CRYSTAL_DIR=~/.crystal_test pnpm electron-dev
-```
-
-This ensures:
-- Your development Crystal instance uses `~/.crystal_test` for its data
-- Your main Crystal instance continues using `~/.crystal` 
-- Worktrees won't conflict between the two instances
-- You can safely test changes without affecting your primary Crystal setup
-
-
-## 📄 License
-
-Crystal is open source software licensed under the [MIT License](LICENSE).
-
-### Third-Party Licenses
-
-Crystal includes third-party software components. All third-party licenses are documented in the [NOTICES](NOTICES) file. This file is automatically generated and kept up-to-date with our dependencies.
-
-To regenerate the NOTICES file after updating dependencies:
-```bash
-pnpm run generate-notices
-```
-
-## Disclaimer
-
-Crystal is an independent project created by [Stravu](https://stravu.com/?utm_source=Crystal&utm_medium=OS&utm_campaign=Crystal&utm_id=1). Claude™ is a trademark of Anthropic, PBC. Crystal is not affiliated with, endorsed by, or sponsored by Anthropic. This tool is designed to work with Claude Code, which must be installed separately.
-
----
-
-<div align="center">
-  <img src="frontend/public/stravu-logo.png" alt="Stravu Logo" width="80" height="80">
-  <br>
-  Made with ❤️ by <a href="https://stravu.com/?utm_source=Crystal&utm_medium=OS&utm_campaign=Crystal&utm_id=1">Stravu</a>
-</div>

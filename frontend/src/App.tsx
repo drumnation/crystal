@@ -5,7 +5,6 @@ import { useResizable } from './hooks/useResizable';
 import { Sidebar } from './components/Sidebar';
 import { SessionView } from './components/SessionView';
 import { PromptHistoryModal } from './components/PromptHistoryModal';
-import { PlanningView } from './components/PlanningView';
 import { TaskPlanningModal } from './components/TaskPlanningModal';
 import Help from './components/Help';
 import Welcome from './components/Welcome';

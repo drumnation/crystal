@@ -332,6 +332,7 @@ export const useSessionView = (
       changes: false,
       terminal: false,
       editor: false,
+      planning: false,
     });
     
     // Clear terminal immediately when session changes
@@ -867,6 +868,46 @@ export const useSessionView = (
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Handle switch to View Diff tab event
+  useEffect(() => {
+    const handleSwitchToViewDiff = (event: CustomEvent) => {
+      const { sessionId } = event.detail;
+      if (sessionId && activeSession?.id === sessionId) {
+        console.log('[useSessionView] Switching to View Diff tab for session:', sessionId);
+        setViewMode('changes');
+      }
+    };
+
+    window.addEventListener('switch-to-view-diff', handleSwitchToViewDiff as EventListener);
+    return () => {
+      window.removeEventListener('switch-to-view-diff', handleSwitchToViewDiff as EventListener);
+    };
+  }, [activeSession?.id]);
+
+  // Handle select session and switch to View Diff tab event
+  useEffect(() => {
+    const handleSelectAndViewDiff = async (event: CustomEvent) => {
+      const { sessionId } = event.detail;
+      console.log('[useSessionView] Select session and view diff:', sessionId);
+      
+      // First, select the session if it's not already active
+      if (sessionId && activeSession?.id !== sessionId) {
+        await useSessionStore.getState().setActiveSession(sessionId);
+      }
+      
+      // Then switch to View Diff tab after a short delay to ensure session is loaded
+      setTimeout(() => {
+        setViewMode('changes');
+      }, 100);
+    };
+
+    const wrappedHandler = (event: Event) => handleSelectAndViewDiff(event as CustomEvent);
+    window.addEventListener('select-session-and-view-diff', wrappedHandler);
+    return () => {
+      window.removeEventListener('select-session-and-view-diff', wrappedHandler);
+    };
+  }, [activeSession?.id]);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       if (viewMode === 'output') fitAddon.current?.fit();
@@ -947,7 +988,7 @@ export const useSessionView = (
   }, [activeSession?.status, activeSession?.runStartedAt, activeSessionId]);
 
   useEffect(() => {
-    setUnreadActivity({ output: false, messages: false, changes: false, terminal: false, editor: false });
+    setUnreadActivity({ output: false, messages: false, changes: false, terminal: false, editor: false, planning: false });
   }, [activeSessionId]);
 
 

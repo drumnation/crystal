@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Session, SessionOutput } from '../types/session';
+import type { Session, SessionOutput, GitStatus } from '../types/session';
 import { API } from '../utils/api';
 
 interface CreateSessionRequest {
@@ -38,6 +38,7 @@ interface SessionStore {
   clearDeletingSessionIds: () => void;
   
   getActiveSession: () => Session | undefined;
+  updateSessionGitStatus: (sessionId: string, gitStatus: GitStatus) => void;
 }
 
 export const useSessionStore = create<SessionStore>((set, get) => ({
@@ -400,6 +401,23 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
     const found = state.sessions.find(session => session.id === state.activeSessionId);
     console.log('[SessionStore] Found session in sessions array:', found?.id, found?.name);
     return found;
+  },
+
+  updateSessionGitStatus: (sessionId, gitStatus) => {
+    set((state) => {
+      const sessions = state.sessions.map(session => 
+        session.id === sessionId 
+          ? { ...session, gitStatus }
+          : session
+      );
+      
+      // Also update main repo session if it matches
+      const activeMainRepoSession = state.activeMainRepoSession?.id === sessionId
+        ? { ...state.activeMainRepoSession, gitStatus }
+        : state.activeMainRepoSession;
+      
+      return { sessions, activeMainRepoSession };
+    });
   },
 
   setDeletingSessionIds: (ids) => set({ deletingSessionIds: new Set(ids) }),

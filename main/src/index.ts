@@ -6,6 +6,7 @@ import { ConfigManager } from './services/configManager';
 import { WorktreeManager } from './services/worktreeManager';
 import { WorktreeNameGenerator } from './services/worktreeNameGenerator';
 import { GitDiffManager } from './services/gitDiffManager';
+import { GitStatusManager } from './services/gitStatusManager';
 import { ExecutionTracker } from './services/executionTracker';
 import { DatabaseService } from './database/database';
 import { RunCommandManager } from './services/runCommandManager';
@@ -31,6 +32,7 @@ let sessionManager: SessionManager;
 let worktreeManager: WorktreeManager;
 let claudeCodeManager: ClaudeCodeManager;
 let gitDiffManager: GitDiffManager;
+let gitStatusManager: GitStatusManager;
 let executionTracker: ExecutionTracker;
 let worktreeNameGenerator: WorktreeNameGenerator;
 let databaseService: DatabaseService;
@@ -342,6 +344,7 @@ async function initializeServices() {
 
   claudeCodeManager = new ClaudeCodeManager(sessionManager, logger, configManager, permissionIpcPath);
   gitDiffManager = new GitDiffManager();
+  gitStatusManager = new GitStatusManager(sessionManager, worktreeManager, gitDiffManager, logger);
   executionTracker = new ExecutionTracker(sessionManager, gitDiffManager);
   worktreeNameGenerator = new WorktreeNameGenerator(configManager);
   runCommandManager = new RunCommandManager(databaseService);
@@ -369,6 +372,7 @@ async function initializeServices() {
     worktreeManager,
     claudeCodeManager,
     gitDiffManager,
+    gitStatusManager,
     executionTracker,
     worktreeNameGenerator,
     runCommandManager,
@@ -385,6 +389,9 @@ async function initializeServices() {
   
   // Start periodic version checking (only if enabled in settings)
   versionChecker.startPeriodicCheck();
+  
+  // Start Git status polling
+  gitStatusManager.startPolling();
 }
 
 app.whenReady().then(async () => {

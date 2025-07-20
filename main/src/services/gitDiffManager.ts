@@ -1,5 +1,6 @@
 import { execSync } from '../utils/commandExecutor';
 import type { Logger } from '../utils/logger';
+import type { GitStatus } from '../types/session';
 
 export interface GitDiffStats {
   additions: number;
@@ -491,6 +492,100 @@ export class GitDiffManager {
     } catch (error) {
       this.logger?.warn(`Could not check git status in ${worktreePath}`);
       return false;
+    }
+  }
+
+  /**
+   * Get comprehensive git status for a worktree
+   */
+  async getGitStatus(worktreePath: string): Promise<GitStatus> {
+    try {
+      // Get diff stats for uncommitted changes
+      const stats = this.getDiffStats(worktreePath);
+      const hasUncommittedChanges = this.hasChanges(worktreePath);
+      
+      // Check for untracked files
+      let hasUntrackedFiles = false;
+      try {
+        const untrackedOutput = execSync('git ls-files --others --exclude-standard', { cwd: worktreePath });
+        hasUntrackedFiles = untrackedOutput.toString().trim().length > 0;
+      } catch (error) {
+        this.logger?.warn(`Failed to check untracked files in ${worktreePath}:`, error as Error);
+      }
+      
+      // Get ahead/behind status - first check if we have a remote tracking branch
+      let ahead = 0;
+      let behind = 0;
+      let hasRemote = false;
+      
+      try {
+        // Get current branch
+        const currentBranch = execSync('git branch --show-current', { cwd: worktreePath }).toString().trim();
+        
+        // Check if branch has upstream
+        try {
+          const upstream = execSync(`git rev-parse --abbrev-ref ${currentBranch}@{upstream}`, { cwd: worktreePath }).toString().trim();
+          hasRemote = !!upstream;
+          
+          if (hasRemote) {
+            // Get ahead/behind counts
+            const revListOutput = execSync(`git rev-list --left-right --count ${upstream}...HEAD`, {
+              cwd: worktreePath
+            });
+            const [behindCount, aheadCount] = revListOutput.toString().trim().split('\t').map((n: string) => parseInt(n, 10));
+            ahead = aheadCount || 0;
+            behind = behindCount || 0;
+          }
+        } catch (error) {
+          // No upstream branch configured
+          this.logger?.verbose(`No upstream branch for ${currentBranch} in ${worktreePath}`);
+        }
+      } catch (error) {
+        this.logger?.warn(`Failed to get ahead/behind status in ${worktreePath}:`, error as Error);
+      }
+
+      // Check for merge conflicts
+      let hasMergeConflicts = false;
+      try {
+        const gitStatus = execSync('git status --porcelain=v1', { cwd: worktreePath });
+        // Check for conflict markers in git status
+        const conflictMarkers = ['UU ', 'AA ', 'DD ', 'AU ', 'UA ', 'UD ', 'DU '];
+        hasMergeConflicts = conflictMarkers.some(marker => gitStatus.includes(marker));
+      } catch (error) {
+        this.logger?.warn(`Failed to check merge conflicts in ${worktreePath}:`, error as Error);
+      }
+
+      // Determine the overall state
+      let state: GitStatus['state'] = 'clean';
+      if (hasMergeConflicts) {
+        state = 'conflict';
+      } else if (ahead > 0 && behind > 0) {
+        state = 'diverged';
+      } else if (ahead > 0) {
+        state = 'ahead';
+      } else if (behind > 0) {
+        state = 'behind';
+      } else if (hasUncommittedChanges) {
+        state = 'modified';
+      } else if (hasUntrackedFiles) {
+        state = 'untracked';
+      }
+
+      return {
+        state,
+        ahead: ahead > 0 ? ahead : undefined,
+        behind: behind > 0 ? behind : undefined,
+        additions: stats.additions > 0 ? stats.additions : undefined,
+        deletions: stats.deletions > 0 ? stats.deletions : undefined,
+        filesChanged: stats.filesChanged > 0 ? stats.filesChanged : undefined,
+        lastChecked: new Date().toISOString()
+      };
+    } catch (error) {
+      this.logger?.error(`Error getting git status for ${worktreePath}:`, error as Error);
+      return {
+        state: 'unknown',
+        lastChecked: new Date().toISOString()
+      };
     }
   }
 }

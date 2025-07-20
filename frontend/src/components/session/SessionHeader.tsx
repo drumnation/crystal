@@ -29,6 +29,7 @@ interface SessionHeaderProps {
     changes: boolean;
     terminal: boolean;
     editor: boolean;
+    planning: boolean;
   };
   setUnreadActivity: (activity: any) => void;
 }

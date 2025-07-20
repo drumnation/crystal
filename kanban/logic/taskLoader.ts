@@ -112,7 +112,7 @@ export async function loadTasks(projectId?: number): Promise<LoadTasksResponse> 
     }
 
     // First, try to list files in the tasks directory
-    const listResponse = await window.electronAPI.file.listProject(currentProjectId, 'tasks');
+    const listResponse = await window.electronAPI.file.listProject(currentProjectId!, 'tasks');
 
     if (!listResponse.success) {
       // If the tasks directory doesn't exist, that's not an error - just return empty
@@ -128,7 +128,7 @@ export async function loadTasks(projectId?: number): Promise<LoadTasksResponse> 
       return { success: false, tasks: [], errors };
     }
 
-    const files = listResponse.files || [];
+    const files = (listResponse as any).files || [];
     const jsonFiles = files.filter((file: any) => 
       !file.isDirectory && 
       file.name.toLowerCase().endsWith('.json')
@@ -147,7 +147,7 @@ export async function loadTasks(projectId?: number): Promise<LoadTasksResponse> 
     
     for (const file of jsonFiles) {
       try {
-        const readResponse = await window.electronAPI.file.readProject(currentProjectId, `tasks/${file.name}`);
+        const readResponse = await window.electronAPI.file.readProject(currentProjectId!, `tasks/${file.name}`);
 
         if (!readResponse.success) {
           errors.push(`Failed to read ${file.name}: ${readResponse.error}`);
@@ -156,7 +156,7 @@ export async function loadTasks(projectId?: number): Promise<LoadTasksResponse> 
 
         taskFiles.push({
           fileName: file.name,
-          content: readResponse.content
+          content: (readResponse as any).content
         });
       } catch (error) {
         errors.push(`Error reading ${file.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);

@@ -43,6 +43,10 @@
     "postinstall": "electron-builder install-app-deps",
     "electron:rebuild": "cd main && electron-rebuild -f -w better-sqlite3",
     "setup": "pnpm install && pnpm run build:main && pnpm run electron:rebuild",
+    "setup:optimized": "bash scripts/pnpm-install-optimized.sh",
+    "setup:worktree": "node --max-old-space-size=8192 scripts/setup-worktree.mjs",
+    "setup:npm-fallback": "bash scripts/install-workaround.sh",
+    "setup:fix-memory": "bash scripts/fix-pnpm-memory.sh",
     "generate-notices": "node scripts/generate-notices.js",
     "test": "playwright test",
     "test:ci": "playwright test --config=playwright.ci.config.ts",
@@ -64,6 +68,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0",
+    "@types/better-sqlite3": "^7.6.13",
     "concurrently": "^9.1.0",
     "electron": "^36.4.0",
     "electron-builder": "^25.1.8",
@@ -123,11 +128,15 @@
       "target": [
         {
           "target": "deb",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         },
         {
           "target": "AppImage",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "category": "Development",
@@ -140,7 +149,16 @@
       }
     },
     "deb": {
-      "depends": ["libgtk-3-0", "libnotify4", "libnss3", "libxss1", "libxtst6", "xdg-utils", "libatspi2.0-0", "libuuid1"],
+      "depends": [
+        "libgtk-3-0",
+        "libnotify4",
+        "libnss3",
+        "libxss1",
+        "libxtst6",
+        "xdg-utils",
+        "libatspi2.0-0",
+        "libuuid1"
+      ],
       "artifactName": "${productName}-${version}-linux-${arch}.deb"
     },
     "appImage": {

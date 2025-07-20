@@ -201,6 +201,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.on('sessions:loaded', wrappedCallback);
       return () => ipcRenderer.removeListener('sessions:loaded', wrappedCallback);
     },
+    onGitStatusUpdated: (callback: (data: { sessionId: string; gitStatus: any }) => void) => {
+      const wrappedCallback = (_event: any, sessionId: string, gitStatus: any) => callback({ sessionId, gitStatus });
+      ipcRenderer.on('git-status-updated', wrappedCallback);
+      return () => ipcRenderer.removeListener('git-status-updated', wrappedCallback);
+    },
     onSessionOutput: (callback: (output: any) => void) => {
       const wrappedCallback = (_event: any, output: any) => callback(output);
       ipcRenderer.on('session:output', wrappedCallback);
