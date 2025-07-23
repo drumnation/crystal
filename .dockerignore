@@ -1,0 +1,122 @@
+# Crystal .dockerignore
+# Optimize Docker build context by excluding unnecessary files
+
+# Build artifacts and output directories
+dist-electron/
+frontend/dist/
+main/dist/
+build/
+out/
+
+# Dependencies (will be installed in container)
+node_modules/
+frontend/node_modules/
+main/node_modules/
+shared/node_modules/
+.pnpm-store/
+.pnpm/
+
+# Version control
+.git/
+.gitignore
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+crystal-frontend-debug.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Test results and coverage
+coverage/
+test-results/
+playwright-report/
+.nyc_output/
+
+# Environment files (may contain secrets)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Cache directories
+.npm
+.eslintcache
+.parcel-cache
+.cache/
+.temp/
+.tmp/
+
+# Documentation and meta files (not needed at runtime)
+README.md
+CHANGELOG.md
+CONTRIBUTING.md
+LICENSE
+NOTICES
+docs/
+*.md
+
+# GitHub specific
+.github/
+
+# Package manager lockfiles (copied separately for caching)
+# Uncomment if you want to exclude them entirely:
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# Application data directories
+.crystal/
+.crystal-dev/
+.crystal_test/
+
+# Electron builder artifacts
+release/
+
+# MacOS specific
+Icon?
+
+# Windows specific
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux specific
+*~
+
+# Application specific excludes
+scripts/inject-build-info.js
+scripts/generate-notices.js
+main/assets/
+frontend/public/
+
+# Docker files themselves
+Dockerfile*
+docker-compose*.yml
+.dockerignore

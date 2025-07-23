@@ -1,0 +1,98 @@
+# Development Dockerfile for Crystal
+# Provides a consistent, reliable development environment
+
+FROM node:22.15.1-slim
+
+# Install system dependencies required for Electron and native modules
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    # Build tools for native modules
+    python3 \
+    python3-pip \
+    build-essential \
+    git \
+    # Electron dependencies for headless mode
+    xvfb \
+    libgtk-3-0 \
+    libnotify4 \
+    libnss3 \
+    libxss1 \
+    libxtst6 \
+    xdg-utils \
+    libatspi2.0-0 \
+    libuuid1 \
+    libgconf-2-4 \
+    libxrandr2 \
+    libasound2 \
+    libpangocairo-1.0-0 \
+    libatk1.0-0 \
+    libcairo-gobject2 \
+    libdrm2 \
+    libxcomposite1 \
+    libxcursor1 \
+    libxdamage1 \
+    libxi6 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Enable corepack and set up exact pnpm version
+RUN corepack enable && corepack prepare pnpm@10.11.1 --activate
+
+# Set up working directory
+WORKDIR /app
+
+# Create a user for development (avoids permission issues)
+RUN groupadd -r crystal && useradd -r -g crystal crystal \
+    && chown -R crystal:crystal /app
+
+USER crystal
+
+# Copy package files first for better caching
+COPY --chown=crystal:crystal package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY --chown=crystal:crystal .nvmrc .npmrc ./
+COPY --chown=crystal:crystal frontend/package.json ./frontend/
+COPY --chown=crystal:crystal main/package.json ./main/
+COPY --chown=crystal:crystal shared/package.json ./shared/
+
+# Copy environment validation script
+COPY --chown=crystal:crystal scripts/validate-environment.js ./scripts/
+
+# Install dependencies with frozen lockfile for reproducibility
+RUN pnpm install --frozen-lockfile
+
+# Copy source code
+COPY --chown=crystal:crystal . .
+
+# Build the main process (required before electron:rebuild)
+RUN pnpm run build:main
+
+# Rebuild native modules for the container environment
+RUN pnpm run electron:rebuild
+
+# Set up environment variables for Electron in Docker
+ENV DISPLAY=:99
+ENV ELECTRON_DISABLE_SANDBOX=1
+ENV ELECTRON_DISABLE_GPU=1
+ENV ELECTRON_ENABLE_LOGGING=1
+
+# Expose the development server port
+EXPOSE 4521
+
+# Set up Xvfb for headless Electron
+USER root
+RUN echo '#!/bin/bash\nXvfb :99 -screen 0 1280x1024x24 &\nexec "$@"' > /usr/local/bin/xvfb-entrypoint \
+    && chmod +x /usr/local/bin/xvfb-entrypoint
+
+USER crystal
+
+# Health check to ensure the development server is running
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD node scripts/dev-health-check.js --timeout 5000 || exit 1
+
+# Start the development server
+ENTRYPOINT ["/usr/local/bin/xvfb-entrypoint"]
+CMD ["pnpm", "run", "dev"]
+
+# Development notes:
+# - Use bind mounts for live reloading: -v "$(pwd):/app"
+# - Exclude node_modules from bind mount to avoid conflicts
+# - Port mapping: -p 4521:4521
+# - For GUI access: -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix
