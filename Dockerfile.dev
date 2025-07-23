@@ -31,17 +31,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxcursor1 \
     libxdamage1 \
     libxi6 \
-    libxtst6 \
-    libxrandr2 \
-    libasound2 \
-    libpangocairo-1.0-0 \
-    libatk1.0-0 \
-    libcairo-gobject2 \
-    libdrm2 \
-    libxcomposite1 \
-    libxcursor1 \
-    libxdamage1 \
-    libxi6 \
     && rm -rf /var/lib/apt/lists/*
 
 # Enable corepack and set up exact pnpm version
