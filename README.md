@@ -8,6 +8,7 @@
 
 [![Build](https://github.com/stravu/crystal/actions/workflows/build.yml/badge.svg)](https://github.com/stravu/crystal/actions/workflows/build.yml)
 [![Quality](https://github.com/stravu/crystal/actions/workflows/quality.yml/badge.svg)](https://github.com/stravu/crystal/actions/workflows/quality.yml)
+[![Dev Environment](https://github.com/stravu/crystal/actions/workflows/dev-smoke.yml/badge.svg)](https://github.com/stravu/crystal/actions/workflows/dev-smoke.yml)
 [![Join our Discord](https://img.shields.io/badge/Join%20our-Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/XrVa6q7DPY)
 
 </div>
@@ -40,9 +41,16 @@ https://github.com/user-attachments/assets/e32f0ee7-c25a-43d6-a704-8a39878032eb
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Claude Code installed and logged in or API key provided
-- Git installed
-- Git repository (Crystal will initialize one if needed)
+- **Node.js 22.15.1 (exact)** - Use [nvm](https://github.com/nvm-sh/nvm), [asdf](https://asdf-vm.com/), or [fnm](https://github.com/Schniz/fnm)
+- **pnpm 10.11.1 (exact)** - Enable with `corepack enable` or install manually
+- **Python 3.x** - Required for native module compilation
+- **C++ build tools** - Platform specific:
+  - macOS: `xcode-select --install`
+  - Ubuntu/Debian: `sudo apt-get install build-essential`
+  - CentOS/RHEL: `sudo yum groupinstall "Development Tools"`
+- **Git** - Version control system
+- **Claude Code** - Installed and logged in or API key provided
+- **Git repository** - Crystal will initialize one if needed
 
 ### 1. Create a Project
 Create a new project if you haven't already. This can be an empty folder or an existing git repository. Crystal will initialize git if needed.
@@ -85,12 +93,35 @@ When everything looks good:
 git clone https://github.com/stravu/crystal.git
 cd crystal
 
-# One-time setup
-pnpm run setup
+# One-time reliable setup with environment validation
+pnpm run bootstrap
 
 # Run in development
-pnpm run electron-dev
+pnpm run dev
 ```
+
+### Troubleshooting Setup Issues
+
+If you encounter issues during setup:
+
+```bash
+# Validate your environment
+pnpm run validate-env
+
+# Check development server health
+pnpm run dev-health
+
+# Clear caches and retry
+rm -rf node_modules
+pnpm store prune
+pnpm run bootstrap
+```
+
+**Common Issues:**
+- **Node.js version mismatch**: Use `nvm use` or install the exact version from `.nvmrc`
+- **Native module build failures**: Ensure Python and C++ build tools are installed
+- **Port 4521 already in use**: Kill existing processes or change the port
+- **Missing dependencies**: Run the validation script to identify missing requirements
 
 ## Building for Production
 
@@ -111,7 +142,7 @@ If you're using Crystal to develop Crystal itself, you need to use a separate da
 
 ```bash
 # Set the run script in your Crystal project settings to:
-pnpm run setup && pnpm run build:main && CRYSTAL_DIR=~/.crystal_test pnpm electron-dev
+pnpm run bootstrap && CRYSTAL_DIR=~/.crystal_test pnpm electron-dev
 ```
 
 This ensures:

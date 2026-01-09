@@ -1,0 +1,159 @@
+name: Development Environment Smoke Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  dev-smoke:
+    name: Validate Dev Environment
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    permissions:
+      contents: read  # Required for accessing repository contents
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22.15.1'
+        cache: 'pnpm'
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -y --no-install-recommends \
+          build-essential \
+          git \
+          xvfb \
+          libgtk-3-0 \
+          libnotify4 \
+          libnss3 \
+          libxss1 \
+          libxtst6 \
+          xdg-utils \
+          libatspi2.0-0 \
+          libuuid1
+
+    - name: Cache native modules
+      uses: actions/cache@v4
+      with:
+        path: |
+          main/node_modules/.bin
+          main/build
+          ~/.electron
+          ~/.electron-gyp
+        key: ${{ runner.os }}-native-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-native-modules-
+
+    - name: Cache Electron binaries
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/electron
+          ~/.cache/electron-builder
+        key: ${{ runner.os }}-electron-${{ hashFiles('**/pnpm-lock.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-electron-
+
+    - name: Validate environment
+      run: node scripts/validate-environment.js
+
+    - name: Bootstrap development environment
+      run: node scripts/bootstrap.js
+      timeout-minutes: 8
+
+    - name: Setup display for Electron
+      run: |
+        export DISPLAY=:99
+        sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
+        sleep 2
+
+    - name: Test development server startup
+      run: |
+        export DISPLAY=:99
+        export ELECTRON_DISABLE_SANDBOX=1
+        
+        # Start the development server in background
+        pnpm run dev &
+        DEV_PID=$!
+        
+        # Wait for server to be ready (with timeout)
+        echo "Waiting for development server to start..."
+        timeout=60
+        counter=0
+        
+        while [ $counter -lt $timeout ]; do
+          if node scripts/dev-health-check.js --timeout 5000 --format json 2>/dev/null; then
+            echo "Development server is healthy!"
+            break
+          fi
+          
+          sleep 2
+          counter=$((counter + 2))
+          echo "Waiting... (${counter}s/${timeout}s)"
+        done
+        
+        # Check if we timed out
+        if [ $counter -ge $timeout ]; then
+          echo "Development server failed to start within ${timeout} seconds"
+          # Get process info for debugging
+          ps aux | grep -E "(node|electron)" | head -10
+          # Get port info
+          netstat -tlpn | grep :4521 || echo "Port 4521 not found"
+          # Kill the background process
+          kill $DEV_PID 2>/dev/null || true
+          exit 1
+        fi
+        
+        # Perform final health check
+        node scripts/dev-health-check.js --timeout 10000
+        health_status=$?
+        
+        # Clean up
+        kill $DEV_PID 2>/dev/null || true
+        sleep 2
+        
+        # Ensure process is terminated
+        kill -9 $DEV_PID 2>/dev/null || true
+        
+        exit $health_status
+      timeout-minutes: 3
+
+    - name: Upload debug artifacts on failure
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: dev-smoke-debug
+        path: |
+          *.log
+          crystal-frontend-debug.log
+          main/dist/
+          frontend/dist/
+        if-no-files-found: ignore
+        retention-days: 3
+
+    - name: Report success
+      if: success()
+      run: |
+        echo "✅ Development environment smoke test passed!"
+        echo "✅ pnpm install && pnpm dev works reliably"
+        echo "✅ Environment validation successful"
+        echo "✅ Bootstrap process successful"
+        echo "✅ Development server starts and responds"

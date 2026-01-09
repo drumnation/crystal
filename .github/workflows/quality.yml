@@ -8,7 +8,12 @@ on:
   workflow_dispatch:
 
 jobs:
+  # Run development environment validation first
+  dev-smoke:
+    uses: ./.github/workflows/dev-smoke.yml
+
   quality-checks:
+    needs: dev-smoke
     name: Quality Checks
     runs-on: ubuntu-latest
     

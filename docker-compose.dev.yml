@@ -1,0 +1,119 @@
+# Docker Compose for Crystal Development Environment
+# 
+# Usage:
+#   docker-compose -f docker-compose.dev.yml up
+#   docker-compose -f docker-compose.dev.yml down
+#
+# Features:
+#   - Live code reloading with bind mounts
+#   - Native module caching for faster rebuilds
+#   - Port forwarding for development server
+#   - Headless Electron support with Xvfb
+
+version: '3.8'
+
+services:
+  crystal-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: crystal-dev
+    ports:
+      - "4521:4521"  # Crystal development server
+    environment:
+      # Electron configuration for Docker
+      - DISPLAY=:99
+      - ELECTRON_DISABLE_SANDBOX=1
+      - ELECTRON_DISABLE_GPU=1
+      - ELECTRON_ENABLE_LOGGING=1
+      # Development configuration
+      - NODE_ENV=development
+      - CRYSTAL_DIR=/app/.crystal-dev
+    volumes:
+      # Live reload - mount source directories
+      - ./frontend/src:/app/frontend/src:ro
+      - ./main/src:/app/main/src:ro
+      - ./shared:/app/shared:ro
+      - ./scripts:/app/scripts:ro
+      
+      # Configuration files
+      - ./package.json:/app/package.json:ro
+      - ./pnpm-workspace.yaml:/app/pnpm-workspace.yaml:ro
+      - ./pnpm-lock.yaml:/app/pnpm-lock.yaml:ro
+      - ./.nvmrc:/app/.nvmrc:ro
+      - ./.npmrc:/app/.npmrc:ro
+      
+      # Preserve node_modules and build artifacts in named volumes
+      # This prevents conflicts between host and container
+      - crystal-node-modules:/app/node_modules
+      - crystal-frontend-node-modules:/app/frontend/node_modules
+      - crystal-main-node-modules:/app/main/node_modules
+      - crystal-shared-node-modules:/app/shared/node_modules
+      
+      # Build outputs - use volumes to persist builds across container restarts
+      - crystal-frontend-dist:/app/frontend/dist
+      - crystal-main-dist:/app/main/dist
+      
+      # Development data directory
+      - crystal-dev-data:/app/.crystal-dev
+    
+    # Keep container running and allow for interactive development
+    stdin_open: true
+    tty: true
+    
+    # Restart policy for development
+    restart: unless-stopped
+    
+    # Health check using our custom script
+    healthcheck:
+      test: ["CMD", "node", "scripts/dev-health-check.js", "--timeout", "5000"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+    
+    # Resource limits for development
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+
+# Named volumes for better performance and persistence
+volumes:
+  crystal-node-modules:
+    driver: local
+  crystal-frontend-node-modules:
+    driver: local
+  crystal-main-node-modules:
+    driver: local
+  crystal-shared-node-modules:
+    driver: local
+  crystal-frontend-dist:
+    driver: local
+  crystal-main-dist:
+    driver: local
+  crystal-dev-data:
+    driver: local
+
+# Development notes:
+# 
+# Getting started:
+#   docker-compose -f docker-compose.dev.yml up --build
+# 
+# Accessing logs:
+#   docker-compose -f docker-compose.dev.yml logs -f crystal-dev
+# 
+# Rebuilding after dependency changes:
+#   docker-compose -f docker-compose.dev.yml build --no-cache
+# 
+# Running commands inside the container:
+#   docker-compose -f docker-compose.dev.yml exec crystal-dev bash
+# 
+# Cleaning up volumes:
+#   docker-compose -f docker-compose.dev.yml down -v
+#   docker volume prune
+#
+# The development server will be available at:
+#   http://localhost:4521

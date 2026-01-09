@@ -8,7 +8,12 @@ on:
   workflow_dispatch:
 
 jobs:
+  # Run development environment validation first
+  dev-smoke:
+    uses: ./.github/workflows/dev-smoke.yml
+
   build:
+    needs: dev-smoke
     strategy:
       matrix:
         # Build both platforms for validation, but use different commands for speed
